@@ -31,4 +31,15 @@ describe("HolsenJS", function() {
         });
 
     });
+
+    describe("l-geo1", function() {
+        it("should be defined", function() {
+            expect(Holsen.lgeo1).toBeDefined();
+        });
+
+        it("should reproduce the results from the manual", function() {
+            var res = Holsen.lgeo1(Holsen.ellipsoids.international, 50, 10, 15000000, 140);
+            expect(res.B2).toBe(-62.950889964)
+        });
+    })
 });
