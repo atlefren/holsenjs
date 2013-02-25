@@ -8,7 +8,7 @@ var Holsen = {};
         },
         "international": {
             "a": 6378388.000,
-            "b": 6356911.946,
+            "b": 6356911.946
         },
         "wgs84": {
             "a": 6378137.000,
@@ -24,7 +24,7 @@ var Holsen = {};
     var round = function(number, numDecimals) {
         var pow = Math.pow(10, numDecimals);
         return Math.round(number * pow) / pow;
-    }
+    };
 
     var meridbue_constants = function(ellipsoid) {
         var n = (ellipsoid.a - ellipsoid.b) / (ellipsoid.a + ellipsoid.b);
@@ -46,10 +46,6 @@ var Holsen = {};
             "k2": k2,
             "k3": k3
         };
-    }
-
-    ns.meridbue = function(ellipsoid, b1, b2) {
-        return round(arc(toRad(b1), toRad(b2), meridbue_constants(ellipsoid)), 3);
     };
 
     var arc = function(b1, b2, constants) {
@@ -60,7 +56,27 @@ var Holsen = {};
         g1 = g1 + constants.k * (Math.pow(constants.n, 4) * Math.cos(8 * bm) * Math.sin(4 * db) * 315) / 256;
         return g1;
     };
+
+    ns.meridbue = function(ellipsoid, b1, b2) {
+        return round(arc(toRad(b1), toRad(b2), meridbue_constants(ellipsoid)), 3);
+    };
+
+    ns.krrad = function(ellipsoid, br, azimuth) {
+        br = toRad(br);
+        azimuth = azimuth / (180 / Math.PI);
+        var e = (Math.pow(ellipsoid.a, 2) - Math.pow(ellipsoid.b, 2)) / Math.pow(ellipsoid.a, 2);
+        var m = Math.pow(Math.sin(br), 2);
+        m = Math.sqrt(1 - e * m);
+        var n = ellipsoid.a / m;
+        m = (1 - e) * ellipsoid.a / Math.pow(m, 3);
+        var mr = Math.sqrt(m * n);
+        var ra = n * m / (n * Math.pow(Math.cos(azimuth), 2) + m * Math.pow(Math.sin(azimuth), 2));
+        return {
+            "M": round(m, 3),
+            "N": round(n, 3),
+            "MR": round(mr, 3),
+            "AR": round(ra, 3)
+        };
+    };
+
 }(Holsen));
-
-
-//console.log(Holsen.meridbue(Holsen.ellipsoids.bessel, 0, 58))
