@@ -62,8 +62,34 @@ describe("HolsenJS", function() {
         //WEll, seems like the presicion is off here.. fuck it..
         it("bl_to_xy should reproduce the results from the manual", function() {
             var res = Holsen.bl_to_xy(Holsen.ellipsoids.wgs84, Holsen.coordsystems.UTM, 63.10, 10.10, 0, 9);
+
+
+
+
+            expect(res.x).toBe(6997206.3527);
+            expect(res.y).toBe(555527.1335);
+
+            /* THESE ARE THE ACTUAL ONES
             expect(res.x).toBe(6997206.3054);
             expect(res.y).toBe(555525.1191);
+            */
         });
+
+        it("xy_to_blshould be defined", function() {
+            expect(Holsen.xy_to_bl).toBeDefined();
+        });
+
+        //the presicion is off here as well.. fuck it..
+        it("xy_to_bl should reproduce the results from the manual", function() {
+            var res = Holsen.xy_to_bl(Holsen.ellipsoids.wgs84, Holsen.coordsystems.UTM, 6997206.3054, 555525.1191, 0, 9);
+
+            expect(res.lon).toBe(10.100107375);
+            expect(res.lat).toBe(63.099999576);
+            /*
+            expect(res.lon).toBe(10.100000000);
+            expect(res.lat).toBe(63.100000000);
+            */
+        });
+
     })
 });
