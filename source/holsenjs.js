@@ -41,19 +41,12 @@ var Holsen = {};
         return Math.round(number * pow) / pow;
     };
 
-    var meridbue_constants = function (ellipsoid) {
+    var ellipsoidParams = function (ellipsoid) {
         var n = (ellipsoid.a - ellipsoid.b) / (ellipsoid.a + ellipsoid.b);
         var k = ellipsoid.a / (n + 1);
-
-        var a1 = n;
-        var a2 = Math.pow(n, 2);
-        var a3 = Math.pow(n, 3);
-        var a4 = Math.pow(n, 4);
-
-        var k1 = 1 + (a2 / 4) + (a4 / 64);
-        var k2 = (a1 - a3 * (1 / 8)) * 3;
-        var k3 = (a2 - a4 / 4) * 15 / 8;
-
+        var k1 = 1 + n * (n / 4) + Math.pow(n, 4) / 64;
+        var k2 = (n - n * n * n / 8) * 3;
+        var k3 = (n * n - Math.pow(n, 4) / 4) * 15 / 8;
         return {
             "n": n,
             "k": k,
@@ -63,17 +56,55 @@ var Holsen = {};
         };
     };
 
-    var arc = function (b1, b2, constants) {
-        var db = b2 - b1;
-        var bm = b2 - db / 2;
-        return constants.k * (constants.k1 * db - constants.k2 * Math.cos(2 * bm) * Math.sin(db) + constants.k3 * Math.cos(4 * bm) * Math.sin(2 * db)) -
-            constants.k * (Math.pow(constants.n, 3) * Math.cos(6 * bm) * Math.sin(3 * db) * 35 / 24) +
-            constants.k * (Math.pow(constants.n, 4) * Math.cos(8 * bm) * Math.sin(4 * db) * 315) / 256;
+    var meridbue_loop = function (params) {
+        if (!params.find_arc) {
+            params.db = params.db + (params.arc - params.g1) / (params.ef.k * params.ef.k1);
+            params.bm = params.lon2 + params.db / 2;
+        }
+        params.g1 = params.ef.k * (params.ef.k1 * params.db - params.ef.k2 * Math.cos(2 * params.bm) * Math.sin(params.db) +
+            params.ef.k3 * Math.cos(4 * params.bm) * Math.sin(2 * params.db)) -
+            params.ef.k * (Math.pow(params.ef.n, 3) * Math.cos(6 * params.bm) * Math.sin(3 * params.db) * 35 / 24) +
+            params.ef.k * (Math.pow(params.ef.n, 4) * Math.cos(8 * params.bm) * Math.sin(4 * params.db) * 315) / 256;
+        return params;
     };
 
-    ns.meridbue = function (ellipsoid, b1, b2) {
-        //TODO: implement case for b1 and g given
-        return round(arc(toRad(b1), toRad(b2), meridbue_constants(ellipsoid)), 3);
+    var meridbue2 = function (lon1, lon2, arc, ellipsoid_params, find_arc) {
+        var g1 = 0, db = 0, bm = 0;
+
+        if (find_arc) {
+            db = lon1 - lon2;
+            bm = lon1 - db / 2;
+        }
+
+        var params = {
+            "bm": bm,
+            "db": db,
+            "arc": arc,
+            "g1": g1,
+            "lon2": lon2,
+            "ef": ellipsoid_params,
+            "find_arc": find_arc
+        };
+
+        if (find_arc) {
+            params = meridbue_loop(params);
+            return params.g1;
+        }
+
+        while (Math.abs(params.arc - params.g1) > Math.pow(10, -4)) {
+            params = meridbue_loop(params);
+        }
+        return params.lon2 + params.db;
+    };
+
+    ns.meridbue = function (ellipsoid, lat1, lat2) {
+        var bue = meridbue2(toRad(lat2), toRad(lat1), null, ellipsoidParams(ellipsoid), true);
+        return round(bue, 3);
+    };
+
+    ns.meridbue_inv = function (ellipsoid, lat, arc) {
+        var lat2 = meridbue2(null, toRad(lat), arc, ellipsoidParams(ellipsoid), false);
+        return round(toDeg(lat2), 9);
     };
 
     ns.krrad = function (ellipsoid, br, azimuth) {
@@ -142,6 +173,7 @@ var Holsen = {};
 
         var la1 = vinkel(Math.tan(si1), Math.cos(rb0));
         var b0 = vinkeltr(ellipsoid.a, ellipsoid.b, rb0);
+
         var e = (ellipsoid.a - ellipsoid.b) * (ellipsoid.a + ellipsoid.b) / Math.pow(ellipsoid.a, 2);
         var w0 = Math.sqrt(1 - e * (Math.pow(Math.sin(b0), 2)));
         var k1 = (1 - w0) / (1 + w0);
@@ -247,64 +279,7 @@ var Holsen = {};
         return round(toDeg(c * 1.11111111111), 7);
     };
 
-    var ellipsoidFactors = function (ellipsoid) {
-        var n = (ellipsoid.a - ellipsoid.b) / (ellipsoid.a + ellipsoid.b);
-        var k = ellipsoid.a / (n + 1);
-        var k1 = 1 + n * (n / 4) + Math.pow(n, 4) / 64;
-        var k2 = (n - n * n * n / 8) * 3;
-        var k3 = (n * n - Math.pow(n, 4) / 4) * 15 / 8;
-        return {
-            "n": n,
-            "k": k,
-            "k1": k1,
-            "k2": k2,
-            "k3": k3
-        };
-    };
-
-    var loop = function (params) {
-        if (!params.to_xy) {
-            params.db = params.db + (params.g - params.g1) / (params.ef.k * params.ef.k1);
-            params.bm = params.b0 + params.db / 2;
-        }
-        params.g1 = params.ef.k * (params.ef.k1 * params.db - params.ef.k2 * Math.cos(2 * params.bm) * Math.sin(params.db) +
-            params.ef.k3 * Math.cos(4 * params.bm) * Math.sin(2 * params.db)) -
-            params.ef.k * (Math.pow(params.ef.n, 3) * Math.cos(6 * params.bm) * Math.sin(3 * params.db) * 35 / 24) +
-            params.ef.k * (Math.pow(params.ef.n, 4) * Math.cos(8 * params.bm) * Math.sin(4 * params.db) * 315) / 256;
-        return params;
-    };
-
-    var meridbue2 = function (br, b0, ef, g, to_xy) {
-        var g1 = 0, db = 0, bm = 0;
-
-        if (to_xy) {
-            db = br - b0;
-            bm = br - db / 2;
-        }
-
-        var params = {
-            "bm": bm,
-            "db": db,
-            "g": g,
-            "g1": g1,
-            "b0": b0,
-            "ef": ef,
-            "to_xy": to_xy
-        };
-
-        if (to_xy) {
-            params = loop(params);
-            return params.g1;
-        }
-
-        while (Math.abs(params.g - params.g1) > Math.pow(10, -4)) {
-            params = loop(params);
-        }
-        return params.b0 + params.db;
-    };
-
     ns.bl_to_xy = function (ellipsoid, coordsys, lat, lon, lat_0, lon_0) {
-        var ef = ellipsoidFactors(ellipsoid);
         var l1 = toRad(lon_0);
         var b0 = toRad(lat_0);
         var l = toRad(lon);
@@ -322,7 +297,7 @@ var Holsen = {};
         var x = -a2 * Math.pow(l, 2) + a4 * Math.pow(l, 4) + a6 * Math.pow(l, 6);
         var y = a1 * l - a3 * Math.pow(l, 3) * a5 * Math.pow(l, 5);
 
-        x = x + meridbue2(br, b0, ef, null, true);
+        x = x + meridbue2(br, b0, null, ellipsoidParams(ellipsoid), true);
 
         x = x * coordsys.factor;
         y = y * coordsys.factor + coordsys.y_add;
@@ -340,8 +315,7 @@ var Holsen = {};
         x = x / coordsys.factor;
         y = (y - coordsys.y_add) / coordsys.factor;
 
-        var ef = ellipsoidFactors(ellipsoid);
-        var bf = meridbue2(null, b0, ef, x, false);
+        var bf = meridbue2(null, b0, x, ellipsoidParams(ellipsoid), false);
 
         var etf = (ellipsoid.a - ellipsoid.b) * (ellipsoid.a + ellipsoid.b) / Math.pow(ellipsoid.b, 2) * Math.pow(Math.cos(bf), 2);
         var nf = Math.pow(ellipsoid.a, 2) / (Math.sqrt(1 + etf) * ellipsoid.b);
