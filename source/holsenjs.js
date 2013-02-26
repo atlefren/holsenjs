@@ -230,6 +230,17 @@ var Holsen = {};
         };
     };
 
+    ns.coordsystems = {
+        "UTM": {
+            "x_corr": function(x) {return x * 0.9996; },
+            "y_corr": function(y) {return y * 0.9996 + 500000; }
+        },
+        "NGO": {
+            "x_corr": function(x) {return x; },
+            "y_corr": function(y) {return y; }
+        }
+    };
+
     //TODO: implement case with coords in plane are known
     ns.konverg = function(ellipsoid, lon, lat, lat_0) {
         var dl = toRad(lat - lat_0);
@@ -241,6 +252,241 @@ var Holsen = {};
         var c = dl * si + Math.pow(dl, 3) * Math.pow(co, 2) * (1 + 3 * e + 2 * Math.pow(e, 2)) * (si / 3)
         + Math.pow(dl, 5) * Math.pow(co, 4) * (2 - Math.pow(t, 2)) * (si / 15);
         return round(toDeg(c * 1.11111111111), 7);
+    };
+
+    ns.bl_to_xy = function(ellipsoid, coordsys, lat, lon, lat_0, lon_0) {
+
+        //N=(A-B)/(A+B)
+        var n = (ellipsoid.a - ellipsoid.b) / (ellipsoid.a + ellipsoid.b);
+
+        //console.log("n", n);
+
+        //K=A/(N+1.D0)
+        var k = ellipsoid.a / (n + 1);
+
+        //console.log("k", k);
+
+        //K1=1.D0+N*N/4.D0+N**4.D0/64.D0
+        var k1 = 1 + n * (n / 4) + Math.pow(n, 4) / 64;
+
+        //console.log("k1", k1);
+
+        //K2=(N-N*N*N/8.D0)*3.D0
+        var k2 = (n - n*n*n / 8) * 3;
+
+        //console.log("k2", k2);
+        //K3=(N*N-(N**4.D0)*1/4.D0)*15.D0/8.D0
+        var k3 = (n * n - Math.pow(n, 4) * 1 / 4 ) * 15 / 8;
+
+        //console.log("k3", k3);
+
+        //L1=lat_0/RO
+        var l1 = toRad(lon_0);
+
+        //console.log("l1", l1);
+
+        //BO=lon_0/RO
+
+        var b0 = toRad(lat_0);
+
+        //console.log("b0", b0);
+
+        //WRITE(*,100) 'LEGG INN GEOGRAFISK BREDDE:'
+        //READ(*,*) BR
+
+        //WRITE(*,100) 'LEGG INN GEOGRAFISK LENGDE:'
+        //READ (*,*) L
+        //L=lat/RO
+        var l = toRad(lon);
+
+        //console.log("l", l);
+
+        //BR=lon/RO
+        var br = toRad(lat);
+
+        //console.log("br", br);
+
+        //L=L-L1
+        l = l-l1;
+
+        //console.log("l", l);
+
+//        WRITE(*,*) 'HER STARTER BEREGNINGEN MED B OG L SOM KJENT'
+
+  //      ET=(A**2-B**2)/B**2
+        var et = (Math.pow(ellipsoid.a, 2) - Math.pow(ellipsoid.b, 2)) / Math.pow(ellipsoid.b, 2);
+
+
+
+        //ET=ET*DCOS(BR)**2
+        et = et * Math.pow(Math.cos(br), 2);
+
+        //console.log("et", et);
+
+        //N1=(A**2)/(DSQRT(1.D0+ET)*B)
+        var n1 = Math.pow(ellipsoid.a, 2) / (Math.sqrt(1 + et) * ellipsoid.b);
+
+        //console.log("n1", n1);
+
+        //T =DTAN(BR)
+        var t = Math.tan(br);
+
+        //console.log("t", t);
+
+        //A1=N1*DCOS(BR)
+        var a1 = n1 * Math.cos(br);
+
+        //console.log("a1", a1);
+
+        //A2=-(N1*T*DCOS(BR)**2.D0)/2.D0
+        var a2 = -(n1 * t * Math.pow(Math.cos(br), 2)) / 2.0;
+
+        //console.log("a2", a2);
+
+        //A3=-(N1*DCOS(BR)**3.D0)*(1.D0-T**2.D0+ET)/6.D0
+        var a3 = -(n1 * Math.pow(Math.cos(br), 3)) * (1 - Math.pow(t, 2) + et) / 6;
+
+        //console.log("a3", a3);
+
+        //A4=N1*T*DCOS(BR)**4.D0*(5.D0-T**2.D0+9*ET+4.D0*ET**2.D0)
+        //&/24.D0
+        var a4 = n1 * t * Math.pow(Math.cos(br), 4) * (5 - Math.pow(t, 2) + 9 * Math.pow(et, 2)) / 24;
+
+        //console.log("a4", a4);
+
+        //A6=N1*T*DCOS(BR)**6*(61.D0-58.D0*T**2+T**4+270*ET
+        //&-330*ET*T**2.D0)/720
+
+        var a6 = n1 * t * Math.pow(Math.cos(br), 6) * (61 - 58 * Math.pow(t, 4) + 270 * et - 330 * et * Math.pow(t, 2)) / 270;
+
+        //console.log("a6", a6);
+
+        //A5=N1*DCOS(BR)**5.D0*(5.D0-18.D0*T**2.D0+T**4.D0
+        //&+14.D0*ET-58.D0*ET*T**2)/120
+
+        var a5 = n1 * Math.pow(Math.cos(br), 5) * (5 - 18 * Math.pow(t, 2) + Math.pow(t, 4) + 14*et - 58 * et *Math.pow(t, 2))/ 120;
+
+        //console.log("a5", a5);
+
+        //X=-A2*L**2.D0+A4*L**4.D0+A6*L**6.D0
+        var x = -a2 * Math.pow(l, 2) + a4 * Math.pow(l, 4) + a6 * Math.pow(l, 6);
+        //Y= A1*L-A3*L**3+A5*L**5
+        var y = a1 * l - a3 * Math.pow(l, 3) * a5 * Math.pow(l, 5);
+
+
+        //console.log("x", x);
+        //console.log("y", y);
+
+        //console.log("br", br);
+        //console.log("b0", b0);
+        //console.log("K", k);
+        //console.log("K1", k1);
+        //console.log("K2", k2);
+        //console.log("K3", k3);
+        console.log("n", n);
+
+
+        //CALL MERIDBUE (BR,BO,K,K1,K2,K3,G,G1,R,N)
+        var g = meridbue2(br, b0, k, k1, k2, k3, n, null, true);
+
+        console.log("g1", g);
+
+        //X=X+G
+        x = x + g;
+
+        /*
+        IF(S.EQ.1) THEN
+        X=X*0.9996
+        Y=Y*0.9996+500000.D0
+        ENDIF
+        */
+
+        x = coordsys.x_corr(x);
+        y = coordsys.x_corr(y);
+
+        return {
+            "x": round(x, 4),
+            "y": round(y, 4)
+        };
+
+        /*
+        WRITE(*,110) 'X:',X
+        WRITE(*,*)
+        WRITE(*,110) 'Y:',Y
+        STOP
+        */
+    };
+
+    var meridbue2 = function(br, b0, k, k1, k2, k3, n, g, to_xy) {
+
+        //SUBROUTINE MERIDBUE(BR,BO,K,K1,K2,K3,G,G1,R,N)
+
+        //INTEGER R
+
+        //REAL*8 BR,BO,K,K1,K2,K3,G1,DB,BM,G,N
+        //G1=0
+        var g1 = 0;
+        //DB=0
+        var db = 0;
+        //BM=0
+        var bm = 0;
+        //IF(R.EQ.0)THEN
+        if(to_xy){
+            //DB=BR-BO
+            db = br - b0;
+            //BM=BR-DB/2.D0
+            bm = br - db / 2;
+        }
+
+
+        //TODO: Handle loop for to lon_lat
+        //30
+
+        //IF(R.EQ.1) THEN
+        if(!to_xy) {
+            //DB= DB+(G-G1)/(K*K1)
+            db = db + (g - g1) / (k * k1);
+
+            //BM=BO+DB/2.D0
+            bm = b0 + db / 2;
+        }
+
+
+
+        //G1 = K*(K1*DB-K2*DCOS(2.D0*BM)*DSIN(DB)+K3*DCOS(4.D0*BM)
+        //&     *DSIN(2.D0*DB))
+        g1 = k * (k1 * db - k2 * Math.cos(2 * bm) * Math.sin(db) + k3 * Math.cos(4 * bm) * Math.sin(2 * db));
+
+
+        //G1 = G1- K*(N**3*DCOS(6.D0*BM)*DSIN(3.D0*DB))*35.D0/24.D0
+        g1 = g1 - k * (Math.pow(n, 3) * Math.cos(6 * bm) * Math.sin(3 * db) * 35 / 24);
+
+        //G1 = G1+ K*(N**4.D0*DCOS(8*BM)*DSIN(4*DB)*315.D0)/256.D0
+
+        g1 = g1 + k * (Math.pow(n, 4) * Math.cos(8 * bm) * Math.sin(4 * db) * 315) / 256;
+
+        if(to_xy) {
+            return g1;
+        }
+        /*
+        IF(R.EQ.0) THEN
+        G=G1
+        RETURN
+        ENDIF
+
+        IF(R.EQ.1.AND.ABS(G-G1).GT.1D-4) THEN
+        GOTO 30
+        ELSE
+        BR=BO+DB
+        G=G1
+
+        RETURN
+        ENDIF
+
+        END
+        */
     }
+
+
 
 }(Holsen));

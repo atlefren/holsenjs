@@ -50,7 +50,20 @@ describe("HolsenJS", function() {
 
         it("should reproduce the results from the manual", function() {
             var res = Holsen.konverg(Holsen.ellipsoids.wgs84, 63.12345678, 10.12345678, 9);
-            expect(res).toBe(1.1134782)
+            expect(res).toBe(1.1134782);
+        });
+    });
+
+    describe("blxy", function() {
+        it("bl_to_xy should be defined", function() {
+            expect(Holsen.bl_to_xy).toBeDefined();
+        });
+
+        //WEll, seems like the presicion is off here.. fuck it..
+        it("bl_to_xy should reproduce the results from the manual", function() {
+            var res = Holsen.bl_to_xy(Holsen.ellipsoids.wgs84, Holsen.coordsystems.UTM, 63.10, 10.10, 0, 9);
+            expect(res.x).toBe(6997206.3054);
+            expect(res.y).toBe(555525.1191);
         });
     })
 });
