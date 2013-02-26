@@ -41,5 +41,16 @@ describe("HolsenJS", function() {
             var res = Holsen.lgeo1(Holsen.ellipsoids.international, 50, 10, 15000000, 140);
             expect(res.B2).toBe(-62.950889964)
         });
+    });
+
+    describe("konverg", function() {
+        it("should be defined", function() {
+            expect(Holsen.konverg).toBeDefined();
+        });
+
+        it("should reproduce the results from the manual", function() {
+            var res = Holsen.konverg(Holsen.ellipsoids.wgs84, 63.12345678, 10.12345678, 9);
+            expect(res).toBe(1.1134782)
+        });
     })
 });

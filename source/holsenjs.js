@@ -56,10 +56,9 @@ var Holsen = {};
     var arc = function(b1, b2, constants) {
         var db = b2 - b1;
         var bm = b2 - db / 2;
-        var g1 = constants.k * (constants.k1 * db - constants.k2 * Math.cos(2 * bm) * Math.sin(db) + constants.k3 * Math.cos(4 * bm) * Math.sin(2 * db));
-        g1 = g1 - constants.k * (Math.pow(constants.n, 3) * Math.cos(6 * bm) * Math.sin(3 * db) * 35/24);
-        g1 = g1 + constants.k * (Math.pow(constants.n, 4) * Math.cos(8 * bm) * Math.sin(4 * db) * 315) / 256;
-        return g1;
+        return constants.k * (constants.k1 * db - constants.k2 * Math.cos(2 * bm) * Math.sin(db) + constants.k3 * Math.cos(4 * bm) * Math.sin(2 * db))
+         - constants.k * (Math.pow(constants.n, 3) * Math.cos(6 * bm) * Math.sin(3 * db) * 35/24)
+         + constants.k * (Math.pow(constants.n, 4) * Math.cos(8 * bm) * Math.sin(4 * db) * 315) / 256;
     };
 
     ns.meridbue = function(ellipsoid, b1, b2) {
@@ -230,5 +229,18 @@ var Holsen = {};
             "A2": round(a2, 9)
         };
     };
+
+    //TODO: implement case with coords in plane are known
+    ns.konverg = function(ellipsoid, lon, lat, lat_0) {
+        var dl = toRad(lat - lat_0);
+        lon = toRad(lon);
+        var e = Math.pow(Math.cos(lon), 2) * (Math.pow(ellipsoid.a, 2) - Math.pow(ellipsoid.b, 2)) / Math.pow(ellipsoid.b, 2);
+        var t = Math.tan(lon);
+        var si = Math.sin(lon);
+        var co = Math.cos(lon);
+        var c = dl * si + Math.pow(dl, 3) * Math.pow(co, 2) * (1 + 3 * e + 2 * Math.pow(e, 2)) * (si / 3)
+        + Math.pow(dl, 5) * Math.pow(co, 4) * (2 - Math.pow(t, 2)) * (si / 15);
+        return round(toDeg(c * 1.11111111111), 7);
+    }
 
 }(Holsen));
