@@ -355,15 +355,109 @@ var Holsen = function () {
 
     //PUBLIC
     var lgeo2 = function (lon1, lat1, lon2, lat2) {
-
         checkEllipsoid();
-        //B1 : lat1
-        //L2: lon1
 
-        //B2: lat2
-        //L2: lon2
+        var a = settings.ellipsoid.a;
+        var b = settings.ellipsoid.b;
 
+        lon1 = toRad(lon1);
+        lat1 = toRad(lat1);
+        lon2 = toRad(lon2);
+        lat2 = toRad(lat2);
 
+        var rb1 = vinkeltr(b, a, lat1);
+        var rb2 = vinkeltr(b, a, lat2);
+        var rb3 = (rb1 + rb2) / 2;
+
+        var e = (a - b) * (a + b) / Math.pow(a, 2);
+        var dl = lon2 - lon1;
+
+        if (Math.abs(dl) < 2 * Math.pow(10, -8)) {
+            console.log('BRUK HELLER ET MERIDIANBUEPROGRAM');
+            var d = Math.PI - Math.abs(dl);
+        } else {
+            if (dl < Math.PI) {
+                dl = dl + 2 * Math.PI;
+            } else if (dl > Math.PI) {
+                dl = dl - 2 * Math.PI;
+            }
+            var dla = dl / Math.sqrt(1 - e * Math.pow(Math.cos(rb3), 2));
+
+            var k1, rb0, si1, si2, la1, la2, i;
+            for (i = 0; i < 5; i = i + 1) {
+                la1 = vinkel(Math.tan(rb1) * Math.cos(dla) - Math.tan(rb2), Math.tan(rb1) * Math.sin(dla));
+                la2 = vinkel(-Math.tan(rb2) * Math.cos(dla) + Math.tan(rb1), Math.tan(rb2) * Math.sin(dla));
+
+                rb0 = vinkel(Math.tan(rb1), Math.cos(la1));
+
+                si1 = vinkel(Math.cos(rb0) * Math.tan(la1), 1);
+                si2 = vinkel(Math.cos(rb0) * Math.tan(la2), 1);
+
+                if (si2 < si1) {
+                    si2 = si2 + 2 * Math.PI;
+                }
+                if (lat2 < 0) {
+                    si2 = si2 - Math.PI;
+                }
+                if (lat1 < 0) {
+                    si2 = si2 - Math.PI;
+                }
+
+                var dsi = si2 - si1;
+                dla = la2 - la1;
+                if (i < 4) {
+                    //BEREGNING AV DLA,FRA 1 TIL 2
+                    var b0 = vinkeltr(a, b, rb0);
+                    var w0 = Math.sqrt(1 - e * Math.pow(Math.sin(b0), 2));
+                    k1 = (1 - w0) / (1 + w0);
+                    var n1 = (a - b) / (a + b);
+                    var r = e * Math.cos(rb0) / 2;
+                    var r1 = (1 + n1 - k1 / 2 - (Math.pow(k1, 2) / 4));
+                    var r2 = k1 / 4;
+                    var r3 = Math.pow(k1, 2) / 16;
+                    dla = dl + r * (r1 * dsi - r2 * (Math.sin(2 * si2) - Math.sin(2 * si1))) +
+                        r * r3 * (Math.sin(4 * si2) - Math.sin(4 * si1));
+                }
+            }
+
+            //BEREGNING AV S1,S2 OG DS
+            var c = b * (1 + Math.pow(k1, 2) / 4) / (1 - k1);
+
+            var d1 = (k1 / 2 - (3 * Math.pow(k1, 3) / 16.0));
+            var d2 = (Math.pow(k1, 2) / 16);
+            var d3 = Math.pow(k1, 3) / 48;
+
+            var s1 = avstand(c, d1, d2, d3, si1);
+            var s2 = avstand(c, d1, d2, d3, si2);
+            var ds = s2 - s1;
+
+            var a1 = vinkel(1, -Math.sin(si1) * Math.tan(rb0));
+            var a2 = vinkel(1, -Math.sin(si2) * Math.tan(rb0));
+
+            if (ds < 0) {
+                ds = -ds;
+            }
+
+            var result = {
+                "RB0": toDeg(rb0),
+                "LA1": toDeg(la1),
+                "LA2": toDeg(la2),
+                "SI1": toDeg(si1),
+                "SI2": toDeg(si2),
+                "a1": toDeg(a1),
+                "a2": toDeg(a2)
+            };
+
+            if (dl > 0) {
+                a2 = a2 + Math.PI;
+            } else if (dl < 0) {
+                a1 = a1 + Math.PI;
+            }
+            result.A1 = round(toDeg(a1), 9);
+            result.A2 = round(toDeg(a2), 9);
+            result.S = round(ds, 3);
+            return result;
+        }
     };
 
     //PUBLIC

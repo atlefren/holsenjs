@@ -199,16 +199,23 @@ describe("HolsenJS", function () {
             expect(holsen.lgeo2).toBeDefined();
         });
 
-        /*
+
         it("should reproduce the results from the manual", function () {
             holsen.setEllipsoid("international");
-            var res = holsen.lgeo1(50, 10, 15000000, 140);
-            expect(res.B2).toBe(-62.950889964);
+
+            console.log("TEST!");
+
+            var res = holsen.lgeo2(10.0, 50.0, 105.093972133, -62.950889964);
+
+            console.log(res);
+            expect(res.A1).toBe(140);
+            expect(res.A2).toBe(294.778189969);
+            expect(res.S).toBe(15000000);
         });
-         */
+
         it("should throw an error when ellipsoid not set", function () {
             expect(function () {
-                holsen.lgeo2(50, 10, 15000000, 140);
+                holsen.lgeo1(10.0, 50.0, 105.093972133, -62.950889964);
             }).toThrow(new Error("Ellipsoid not set (call holsen.setEllipsoid()!)."));
         });
 
