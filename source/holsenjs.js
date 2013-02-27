@@ -40,7 +40,7 @@ var Holsen = function () {
                 throw new Error("The entered ellipsoid is either missing or have non-numbers as a or b.");
             }
         } else {
-            throw new Error("Malformed ellipsoid");
+            throw new Error("Malformed ellipsoid.");
         }
     };
 
@@ -75,7 +75,7 @@ var Holsen = function () {
                 throw new Error("The entered coordsystem is either missing or have non-functions as factor or y_add.");
             }
         } else {
-            throw new Error("Malformed coordsystem");
+            throw new Error("Malformed coordsystem.");
         }
     };
 

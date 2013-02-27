@@ -36,6 +36,12 @@ describe("HolsenJS", function () {
             });
         });
 
+        it("should complain when passing crap data", function () {
+            expect(function () {
+                holsen.setEllipsoid(1);
+            }).toThrow(new Error("Malformed ellipsoid."));
+        });
+
         it("should complain when setting an invalid ellipsoid object", function () {
             expect(function () {
                 holsen.setEllipsoid({
@@ -55,6 +61,58 @@ describe("HolsenJS", function () {
                     "b": 6356752.314
                 });
             }).toThrow(new Error("The entered ellipsoid is either missing or have non-numbers as a or b."));
+        });
+    });
+
+
+    describe("coordsystems", function () {
+
+        it("should have two valid coordsystems", function () {
+            var coordsystems = holsen.getCoordsystems();
+            expect(coordsystems.UTM).toBeDefined();
+            expect(coordsystems.NGO).toBeDefined();
+        });
+
+        it("should not complain when setting a valid coordystem as string", function () {
+            holsen.setCoordsystem("UTM");
+        });
+
+        it("should complain when setting an invalid coordystem as string", function () {
+            expect(function () {holsen.setCoordsystem("bambus"); }).toThrow(new Error("Non-existing coordsystem: bambus"));
+        });
+
+        it("should not complain when setting a valid coordsystem object", function () {
+            holsen.setCoordsystem({
+                "factor": function () {},
+                "y_add": function () {}
+            });
+        });
+
+        it("should complain when passing crap data", function () {
+            expect(function () {
+                holsen.setCoordsystem(1);
+            }).toThrow(new Error("Malformed coordsystem."));
+        });
+
+        it("should complain when setting an invalid coordsystem object", function () {
+            expect(function () {
+                holsen.setCoordsystem({
+                    "factor": function () {}
+                });
+            }).toThrow(new Error("The entered coordsystem is either missing or have non-functions as factor or y_add."));
+
+            expect(function () {
+                holsen.setCoordsystem({
+                    "y_add": function () {}
+                });
+            }).toThrow(new Error("The entered coordsystem is either missing or have non-functions as factor or y_add."));
+
+            expect(function () {
+                holsen.setCoordsystem({
+                    "factor": "bambus",
+                    "y_add": function () {}
+                });
+            }).toThrow(new Error("The entered coordsystem is either missing or have non-functions as factor or y_add."));
         });
     });
 
