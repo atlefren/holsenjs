@@ -130,7 +130,7 @@ var Holsen = function () {
         return params;
     };
 
-    var meridbue2 = function (lon1, lon2, arc, ellipsoid_params, find_arc) {
+    var meridbue_internal = function (lon1, lon2, arc, ellipsoid_params, find_arc) {
         var g1 = 0, db = 0, bm = 0;
 
         if (find_arc) {
@@ -175,14 +175,14 @@ var Holsen = function () {
     //PUBLIC
     var meridbue = function (lat1, lat2) {
         checkEllipsoid();
-        var bue = meridbue2(toRad(lat2), toRad(lat1), null, ellipsoidParams(), true);
+        var bue = meridbue_internal(toRad(lat2), toRad(lat1), null, ellipsoidParams(), true);
         return round(bue, 3);
     };
 
     //PUBLIC
     var meridbue_inv = function (lat, arc) {
         checkEllipsoid();
-        var lat2 = meridbue2(null, toRad(lat), arc, ellipsoidParams(), false);
+        var lat2 = meridbue_internal(null, toRad(lat), arc, ellipsoidParams(), false);
         return round(toDeg(lat2), 9);
     };
 
@@ -387,7 +387,7 @@ var Holsen = function () {
         x = conv.x;
         y = conv.y;
 
-        var bf = meridbue2(null, toRad(lat_0), x, ellipsoidParams(), false);
+        var bf = meridbue_internal(null, toRad(lat_0), x, ellipsoidParams(), false);
         var a = settings.ellipsoid.a;
         var b = settings.ellipsoid.b;
 
@@ -424,7 +424,7 @@ var Holsen = function () {
         var x = -a2 * Math.pow(l, 2) + a4 * Math.pow(l, 4) + a6 * Math.pow(l, 6);
         var y = a1 * l - a3 * Math.pow(l, 3) * a5 * Math.pow(l, 5);
 
-        x = x + meridbue2(br, b0, null, ellipsoidParams(), true);
+        x = x + meridbue_internal(br, b0, null, ellipsoidParams(), true);
 
         var conv = convertXyCoordsBack(x, y);
         x = conv.x;
@@ -447,7 +447,7 @@ var Holsen = function () {
         x = conv.x;
         y = conv.y;
 
-        var bf = meridbue2(null, b0, x, ellipsoidParams(), false);
+        var bf = meridbue_internal(null, b0, x, ellipsoidParams(), false);
 
         var a = settings.ellipsoid.a;
         var b = settings.ellipsoid.b;
