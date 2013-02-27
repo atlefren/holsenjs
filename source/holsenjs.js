@@ -85,12 +85,13 @@ var Holsen = function () {
         }
     };
 
+    var r0 = (Math.PI / 180);
     var toRad = function (deg) {
         return deg / (180 / Math.PI);
     };
 
     var toDeg = function (rad) {
-        return rad / (Math.PI / 180);
+        return rad / r0;
     };
 
     var round = function (number, numDecimals) {
@@ -154,6 +155,18 @@ var Holsen = function () {
         return params.lon2 + params.db;
     };
 
+    var convertXyCoords = function (x, y) {
+        x = x / settings.coordsystem.factor;
+        y = (y - settings.coordsystem.y_add) / settings.coordsystem.factor;
+
+        return {"x": x, "y": y};
+    };
+
+    var convertXyCoordsBack = function (x, y) {
+        x = x * settings.coordsystem.factor;
+        y = y * settings.coordsystem.factor + settings.coordsystem.y_add;
+        return {"x": x, "y": y};
+    };
 
     //PUBLIC
     var meridbue = function (lat1, lat2) {
@@ -239,6 +252,7 @@ var Holsen = function () {
 
         var la1 = vinkel(Math.tan(si1), Math.cos(rb0));
         var b0 = vinkeltr(settings.ellipsoid.a, settings.ellipsoid.b, rb0);
+
 
         var e = (settings.ellipsoid.a - settings.ellipsoid.b) * (settings.ellipsoid.a + settings.ellipsoid.b) / Math.pow(settings.ellipsoid.a, 2);
         var w0 = Math.sqrt(1 - e * (Math.pow(Math.sin(b0), 2)));
@@ -347,6 +361,25 @@ var Holsen = function () {
         return round(toDeg(c * 1.11111111111), 7);
     };
 
+    var konverg_xy = function (x, y, lon_0, lat_0) {
+        checkEllipsoid();
+        checkCoordsystem();
+        var conv = convertXyCoords(x, y);
+        x = conv.x;
+        y = conv.y;
+
+        var bf = meridbue2(null, toRad(lat_0), x, ellipsoidParams(settings.ellipsoid), false);
+        var a = settings.ellipsoid.a;
+        var b = settings.ellipsoid.b;
+
+        var e = ((a - b) * (a + b) / Math.pow(b, 2)) * (Math.pow(Math.cos(bf), 2));
+        var nf = Math.pow(a, 2) / (b * Math.sqrt(1 + e));
+        var t = Math.tan(bf);
+        var c = y * t / nf - (1  + Math.pow(t, 2) - e - 2 * Math.pow(e, 2)) * t * Math.pow(y, 3) / (3 * Math.pow(nf, 3)) +
+            (2 + 5 * Math.pow(t, 2) + 3 * Math.pow(t, 4)) * t * Math.pow(y, 5) / (15 * Math.pow(nf, 5));
+        return round(c / (r0 * 0.9), 7);
+    };
+
     //public
     var bl_to_xy = function (lat, lon, lat_0, lon_0) {
         checkEllipsoid();
@@ -370,8 +403,9 @@ var Holsen = function () {
 
         x = x + meridbue2(br, b0, null, ellipsoidParams(settings.ellipsoid), true);
 
-        x = x * settings.coordsystem.factor;
-        y = y * settings.coordsystem.factor + settings.coordsystem.y_add;
+        var conv = convertXyCoordsBack(x, y);
+        x = conv.x;
+        y = conv.y;
 
         return {
             "x": round(x, 4),
@@ -386,8 +420,9 @@ var Holsen = function () {
         var l1 = toRad(lon_0);
         var b0 = toRad(lat_0);
 
-        x = x / settings.coordsystem.factor;
-        y = (y - settings.coordsystem.y_add) / settings.coordsystem.factor;
+        var conv = convertXyCoords(x, y);
+        x = conv.x;
+        y = conv.y;
 
         var bf = meridbue2(null, b0, x, ellipsoidParams(settings.ellipsoid), false);
 
@@ -418,6 +453,7 @@ var Holsen = function () {
         "krrad": krrad,
         "lgeo1": lgeo1,
         "konverg": konverg,
+        "konverg_xy": konverg_xy,
         "bl_to_xy": bl_to_xy,
         "xy_to_bl": xy_to_bl,
         "getEllipsoids": function () {return ellipsoids; },
