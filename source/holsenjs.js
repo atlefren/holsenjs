@@ -99,9 +99,13 @@ var Holsen = function () {
         return Math.round(number * pow) / pow;
     };
 
-    var ellipsoidParams = function (ellipsoid) {
-        var n = (ellipsoid.a - ellipsoid.b) / (ellipsoid.a + ellipsoid.b);
-        var k = ellipsoid.a / (n + 1);
+    var ellipsoidParams = function () {
+
+        var a = settings.ellipsoid.a;
+        var b = settings.ellipsoid.b;
+
+        var n = (a - b) / (a + b);
+        var k = a / (n + 1);
         var k1 = 1 + n * (n / 4) + Math.pow(n, 4) / 64;
         var k2 = (n - n * n * n / 8) * 3;
         var k3 = (n * n - Math.pow(n, 4) / 4) * 15 / 8;
@@ -171,24 +175,24 @@ var Holsen = function () {
     //PUBLIC
     var meridbue = function (lat1, lat2) {
         checkEllipsoid();
-        var bue = meridbue2(toRad(lat2), toRad(lat1), null, ellipsoidParams(settings.ellipsoid), true);
+        var bue = meridbue2(toRad(lat2), toRad(lat1), null, ellipsoidParams(), true);
         return round(bue, 3);
     };
 
     //PUBLIC
     var meridbue_inv = function (lat, arc) {
         checkEllipsoid();
-        var lat2 = meridbue2(null, toRad(lat), arc, ellipsoidParams(settings.ellipsoid), false);
+        var lat2 = meridbue2(null, toRad(lat), arc, ellipsoidParams(), false);
         return round(toDeg(lat2), 9);
     };
 
     //PUBLIC
-    var krrad = function (br, azimuth) {
+    var krrad = function (lat, azimuth) {
         checkEllipsoid();
-        br = toRad(br);
+        lat = toRad(lat);
         azimuth = toRad(azimuth);
         var e = (Math.pow(settings.ellipsoid.a, 2) - Math.pow(settings.ellipsoid.b, 2)) / Math.pow(settings.ellipsoid.a, 2);
-        var m = Math.pow(Math.sin(br), 2);
+        var m = Math.pow(Math.sin(lat), 2);
         m = Math.sqrt(1 - e * m);
         var n = settings.ellipsoid.a / m;
         m = (1 - e) * settings.ellipsoid.a / Math.pow(m, 3);
@@ -236,13 +240,16 @@ var Holsen = function () {
     };
 
     //PUBLIC
-    var lgeo1 = function (lat, lon, length, azimuth) {
+    var lgeo1 = function (lon, lat, length, azimuth) {
         checkEllipsoid();
         lat = toRad(lat);
         lon = toRad(lon);
         azimuth = toRad(azimuth);
 
-        var rb1 = vinkeltr(settings.ellipsoid.b, settings.ellipsoid.a, lat);
+        var a = settings.ellipsoid.a;
+        var b = settings.ellipsoid.b;
+
+        var rb1 = vinkeltr(b, a, lat);
         var si1 = vinkel(-Math.cos(azimuth), Math.tan(rb1));
 
         var rb0 = vinkel(1, -Math.sin(si1) * Math.tan(azimuth));
@@ -251,13 +258,13 @@ var Holsen = function () {
         }
 
         var la1 = vinkel(Math.tan(si1), Math.cos(rb0));
-        var b0 = vinkeltr(settings.ellipsoid.a, settings.ellipsoid.b, rb0);
+        var b0 = vinkeltr(a, b, rb0);
 
 
-        var e = (settings.ellipsoid.a - settings.ellipsoid.b) * (settings.ellipsoid.a + settings.ellipsoid.b) / Math.pow(settings.ellipsoid.a, 2);
+        var e = (a - b) * (a + b) / Math.pow(a, 2);
         var w0 = Math.sqrt(1 - e * (Math.pow(Math.sin(b0), 2)));
         var k1 = (1 - w0) / (1 + w0);
-        var c = settings.ellipsoid.b * (1 + Math.pow(k1, 2) / 4) / (1 - k1);
+        var c = b * (1 + Math.pow(k1, 2) / 4) / (1 - k1);
 
         var d1 = (k1 / 2 - (3 * Math.pow(k1, 3)) / 16);
         var d2 = Math.pow(k1, 2) / 16;
@@ -278,7 +285,7 @@ var Holsen = function () {
         var a2 = vinkel(1, Math.sin(si2) * Math.tan(rb0));
         var rb2 = vinkel(Math.cos(a2), Math.tan(si2));
 
-        var b2 = vinkeltr(settings.ellipsoid.a, settings.ellipsoid.b, rb2);
+        var b2 = vinkeltr(a, b, rb2);
 
         if (b2 < 0) {
             la2 = la2 - Math.PI;
@@ -292,7 +299,7 @@ var Holsen = function () {
 
         var dla = la2 - la1;
         var dsi = si2 - si1;
-        var n1 = (settings.ellipsoid.a - settings.ellipsoid.b) / (settings.ellipsoid.a + settings.ellipsoid.b);
+        var n1 = (a - b) / (a + b);
 
         var r = e * Math.cos(rb0) / 2;
         var r1 = (1 + n1 - k1 / 2 - Math.pow(k1, 2) / 4);
@@ -346,7 +353,19 @@ var Holsen = function () {
         };
     };
 
-    //TODO: implement case with coords in plane are known
+    //PUBLIC
+    var lgeo2 = function (lon1, lat1, lon2, lat2) {
+
+        checkEllipsoid();
+        //B1 : lat1
+        //L2: lon1
+
+        //B2: lat2
+        //L2: lon2
+
+
+    };
+
     //PUBLIC
     var konverg = function (lon, lat, lat_0) {
         checkEllipsoid();
@@ -368,7 +387,7 @@ var Holsen = function () {
         x = conv.x;
         y = conv.y;
 
-        var bf = meridbue2(null, toRad(lat_0), x, ellipsoidParams(settings.ellipsoid), false);
+        var bf = meridbue2(null, toRad(lat_0), x, ellipsoidParams(), false);
         var a = settings.ellipsoid.a;
         var b = settings.ellipsoid.b;
 
@@ -381,7 +400,7 @@ var Holsen = function () {
     };
 
     //public
-    var bl_to_xy = function (lat, lon, lat_0, lon_0) {
+    var bl_to_xy = function (lon, lat, lon_0, lat_0) {
         checkEllipsoid();
         checkCoordsystem();
         var l1 = toRad(lon_0);
@@ -389,8 +408,12 @@ var Holsen = function () {
         var l = toRad(lon);
         var br = toRad(lat);
         l = l - l1;
-        var et = (Math.pow(settings.ellipsoid.a, 2) - Math.pow(settings.ellipsoid.b, 2)) / Math.pow(settings.ellipsoid.b, 2) * Math.pow(Math.cos(br), 2);
-        var n1 = Math.pow(settings.ellipsoid.a, 2) / (Math.sqrt(1 + et) * settings.ellipsoid.b);
+
+        var a = settings.ellipsoid.a;
+        var b = settings.ellipsoid.b;
+
+        var et = (Math.pow(a, 2) - Math.pow(b, 2)) / Math.pow(b, 2) * Math.pow(Math.cos(br), 2);
+        var n1 = Math.pow(a, 2) / (Math.sqrt(1 + et) * b);
         var t = Math.tan(br);
         var a1 = n1 * Math.cos(br);
         var a2 = -(n1 * t * Math.pow(Math.cos(br), 2)) / 2.0;
@@ -401,7 +424,7 @@ var Holsen = function () {
         var x = -a2 * Math.pow(l, 2) + a4 * Math.pow(l, 4) + a6 * Math.pow(l, 6);
         var y = a1 * l - a3 * Math.pow(l, 3) * a5 * Math.pow(l, 5);
 
-        x = x + meridbue2(br, b0, null, ellipsoidParams(settings.ellipsoid), true);
+        x = x + meridbue2(br, b0, null, ellipsoidParams(), true);
 
         var conv = convertXyCoordsBack(x, y);
         x = conv.x;
@@ -414,7 +437,7 @@ var Holsen = function () {
     };
 
     //PUBLIC
-    var xy_to_bl = function (x, y, lat_0, lon_0) {
+    var xy_to_bl = function (x, y, lon_0, lat_0) {
         checkEllipsoid();
         checkCoordsystem();
         var l1 = toRad(lon_0);
@@ -424,10 +447,13 @@ var Holsen = function () {
         x = conv.x;
         y = conv.y;
 
-        var bf = meridbue2(null, b0, x, ellipsoidParams(settings.ellipsoid), false);
+        var bf = meridbue2(null, b0, x, ellipsoidParams(), false);
 
-        var etf = (settings.ellipsoid.a - settings.ellipsoid.b) * (settings.ellipsoid.a + settings.ellipsoid.b) / Math.pow(settings.ellipsoid.b, 2) * Math.pow(Math.cos(bf), 2);
-        var nf = Math.pow(settings.ellipsoid.a, 2) / (Math.sqrt(1 + etf) * settings.ellipsoid.b);
+        var a = settings.ellipsoid.a;
+        var b = settings.ellipsoid.b;
+
+        var etf = (a - b) * (a + b) / Math.pow(b, 2) * Math.pow(Math.cos(bf), 2);
+        var nf = Math.pow(a, 2) / (Math.sqrt(1 + etf) * b);
         var tf = Math.tan(bf);
 
         var b1 = 1 / (nf * Math.cos(bf));
@@ -448,10 +474,11 @@ var Holsen = function () {
     };
 
     return {
+        "lgeo1": lgeo1,
+        "lgeo2": lgeo2,
+        "krrad": krrad,
         "meridbue": meridbue,
         "meridbue_inv": meridbue_inv,
-        "krrad": krrad,
-        "lgeo1": lgeo1,
         "konverg": konverg,
         "konverg_xy": konverg_xy,
         "bl_to_xy": bl_to_xy,

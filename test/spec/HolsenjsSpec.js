@@ -182,15 +182,36 @@ describe("HolsenJS", function () {
 
         it("should reproduce the results from the manual", function () {
             holsen.setEllipsoid("international");
-            var res = holsen.lgeo1(50, 10, 15000000, 140);
+            var res = holsen.lgeo1(10, 50, 15000000, 140);
             expect(res.B2).toBe(-62.950889964);
         });
 
         it("should throw an error when ellipsoid not set", function () {
             expect(function () {
-                holsen.lgeo1(50, 10, 15000000, 140);
+                holsen.lgeo1(10, 50, 15000000, 140);
             }).toThrow(new Error("Ellipsoid not set (call holsen.setEllipsoid()!)."));
         });
+    });
+
+    describe("l-geo2", function () {
+
+        it("should be defined", function () {
+            expect(holsen.lgeo2).toBeDefined();
+        });
+
+        /*
+        it("should reproduce the results from the manual", function () {
+            holsen.setEllipsoid("international");
+            var res = holsen.lgeo1(50, 10, 15000000, 140);
+            expect(res.B2).toBe(-62.950889964);
+        });
+         */
+        it("should throw an error when ellipsoid not set", function () {
+            expect(function () {
+                holsen.lgeo2(50, 10, 15000000, 140);
+            }).toThrow(new Error("Ellipsoid not set (call holsen.setEllipsoid()!)."));
+        });
+
     });
 
     describe("konverg", function () {
@@ -255,7 +276,7 @@ describe("HolsenJS", function () {
             it("should reproduce the results from the manual", function () {
                 holsen.setEllipsoid("wgs84");
                 holsen.setCoordsystem("UTM");
-                var res = holsen.bl_to_xy(63.10, 10.10, 0, 9);
+                var res = holsen.bl_to_xy(10.10, 63.10, 9, 0);
 
                 expect(res.x).toBe(6997206.3527);
                 expect(res.y).toBe(555527.1335);
@@ -269,14 +290,14 @@ describe("HolsenJS", function () {
             it("should throw an error when ellipsoid not set", function () {
                 holsen.setCoordsystem("UTM");
                 expect(function () {
-                    holsen.bl_to_xy(63.10, 10.10, 0, 9);
+                    holsen.bl_to_xy(10.10, 63.10, 9, 0);
                 }).toThrow(new Error("Ellipsoid not set (call holsen.setEllipsoid()!)."));
             });
 
             it("should throw an error when coordsystem not set", function () {
                 holsen.setEllipsoid("wgs84");
                 expect(function () {
-                    holsen.bl_to_xy(63.10, 10.10, 0, 9);
+                    holsen.bl_to_xy(10.10, 63.10, 9, 0);
                 }).toThrow(new Error("Coordsystem not set (call holsen.setCoordsystem()!)."));
             });
 
@@ -294,7 +315,7 @@ describe("HolsenJS", function () {
                 holsen.setEllipsoid("wgs84");
                 holsen.setCoordsystem("UTM");
 
-                var res = holsen.xy_to_bl(6997206.3054, 555525.1191, 0, 9);
+                var res = holsen.xy_to_bl(6997206.3054, 555525.1191, 9, 0);
 
                 expect(res.lon).toBe(10.100107375);
                 expect(res.lat).toBe(63.099999576);
@@ -308,14 +329,14 @@ describe("HolsenJS", function () {
             it("should throw an error when ellipsoid not set", function () {
                 holsen.setCoordsystem("UTM");
                 expect(function () {
-                    holsen.xy_to_bl(6997206.3054, 555525.1191, 0, 9);
+                    holsen.xy_to_bl(6997206.3054, 555525.1191, 9, 0);
                 }).toThrow(new Error("Ellipsoid not set (call holsen.setEllipsoid()!)."));
             });
 
             it("should throw an error when coordsystem not set", function () {
                 holsen.setEllipsoid("wgs84");
                 expect(function () {
-                    holsen.xy_to_bl(6997206.3054, 555525.1191, 0, 9);
+                    holsen.xy_to_bl(6997206.3054, 555525.1191, 9, 0);
                 }).toThrow(new Error("Coordsystem not set (call holsen.setCoordsystem()!)."));
             });
 
