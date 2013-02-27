@@ -1,8 +1,9 @@
-var Holsen = {};
-(function (ns) {
+var Holsen = function () {
     "use strict";
 
-    ns.ellipsoids = {
+    var ellipsoid;
+
+    var ellipsoids = {
         "bessel": {
             "a": 6377492.018,
             "b": 6356173.509
@@ -17,7 +18,38 @@ var Holsen = {};
         }
     };
 
-    ns.coordsystems = {
+    var isString = function (obj) {
+        return Object.prototype.toString.call(obj) === "[object String]";
+    };
+
+    var setEllipsoid = function (ellipsoid) {
+
+        console.log(isString(ellipsoid));
+
+
+        if (isString(ellipsoid)) {
+            if (ellipsoids[ellipsoid] !== undefined) {
+                this.ellipsoid = ellipsoids[ellipsoid];
+
+                console.log("ell is set!")
+
+            } else {
+                throw new Error("Non-existing ellipsoid: " + ellipsoid);
+            }
+        } else if (ellipsoid === Object(ellipsoid)) {
+            if (ellipsoid.a && !isNaN(ellipsoid.a) && ellipsoid.b && !isNaN(ellipsoid.b)) {
+                this.ellipsoid = ellipsoid;
+            } else {
+                throw new Error("The entered ellipsoid is either missing or have non-numbers as a or b.");
+            }
+        } else {
+            throw new Error("Malformed ellipsoid");
+        }
+    };
+
+    var coordsystem;
+
+    var coordsystems = {
         "UTM": {
             "factor": 0.9996,
             "y_add": 500000
@@ -27,6 +59,25 @@ var Holsen = {};
             "y_add": 0
         }
     };
+
+    var setCoordsystem = function (coordsystem) {
+        if (isString(coordsystem)) {
+            if (coordsystems[coordsystem] !== undefined) {
+                this.coordsystem = coordsystems[coordsystem];
+            } else {
+                throw new Error("Non-existing coordsystem: " + coordsystem);
+            }
+        } else if (coordsystem === Object(coordsystem)) {
+            if (coordsystem.factor && typeof coordsystem.factor === 'function' && coordsystem.y_add && typeof coordsystem.y_add === 'function') {
+                this.coordsystem = coordsystem;
+            } else {
+                throw new Error("The entered coordsystem is either missing or have non-functions as factor or y_add.");
+            }
+        } else {
+            throw new Error("Malformed coordsystem");
+        }
+    };
+
 
     var toRad = function (deg) {
         return deg / (180 / Math.PI);
@@ -97,24 +148,31 @@ var Holsen = {};
         return params.lon2 + params.db;
     };
 
-    ns.meridbue = function (ellipsoid, lat1, lat2) {
-        var bue = meridbue2(toRad(lat2), toRad(lat1), null, ellipsoidParams(ellipsoid), true);
+
+    //PUBLIC
+    var meridbue = function (lat1, lat2) {
+        console.log(this.ellipsoid);
+
+        //TODO check ellipsoid
+        var bue = meridbue2(toRad(lat2), toRad(lat1), null, ellipsoidParams(this.ellipsoid), true);
         return round(bue, 3);
     };
 
-    ns.meridbue_inv = function (ellipsoid, lat, arc) {
-        var lat2 = meridbue2(null, toRad(lat), arc, ellipsoidParams(ellipsoid), false);
+    //PUBLIC
+    var meridbue_inv = function (lat, arc) {
+        var lat2 = meridbue2(null, toRad(lat), arc, ellipsoidParams(this.ellipsoid), false);
         return round(toDeg(lat2), 9);
     };
 
-    ns.krrad = function (ellipsoid, br, azimuth) {
+    //PUBLIC
+    var krrad = function (br, azimuth) {
         br = toRad(br);
         azimuth = toRad(azimuth);
-        var e = (Math.pow(ellipsoid.a, 2) - Math.pow(ellipsoid.b, 2)) / Math.pow(ellipsoid.a, 2);
+        var e = (Math.pow(this.ellipsoid.a, 2) - Math.pow(this.ellipsoid.b, 2)) / Math.pow(this.ellipsoid.a, 2);
         var m = Math.pow(Math.sin(br), 2);
         m = Math.sqrt(1 - e * m);
-        var n = ellipsoid.a / m;
-        m = (1 - e) * ellipsoid.a / Math.pow(m, 3);
+        var n = this.ellipsoid.a / m;
+        m = (1 - e) * this.ellipsoid.a / Math.pow(m, 3);
         var mr = Math.sqrt(m * n);
         var ra = n * m / (n * Math.pow(Math.cos(azimuth), 2) + m * Math.pow(Math.sin(azimuth), 2));
         return {
@@ -158,12 +216,13 @@ var Holsen = {};
         return c * (si + d1 * Math.sin(2 * si) - d2 * Math.sin(4 * si) + d3 * Math.sin(6 * si));
     };
 
-    ns.lgeo1 = function (ellipsoid, lat, lon, length, azimuth) {
+    //PUBLIC
+    var lgeo1 = function (lat, lon, length, azimuth) {
         lat = toRad(lat);
         lon = toRad(lon);
         azimuth = toRad(azimuth);
 
-        var rb1 = vinkeltr(ellipsoid.b, ellipsoid.a, lat);
+        var rb1 = vinkeltr(this.ellipsoid.b, this.ellipsoid.a, lat);
         var si1 = vinkel(-Math.cos(azimuth), Math.tan(rb1));
 
         var rb0 = vinkel(1, -Math.sin(si1) * Math.tan(azimuth));
@@ -172,14 +231,14 @@ var Holsen = {};
         }
 
         var la1 = vinkel(Math.tan(si1), Math.cos(rb0));
-        var b0 = vinkeltr(ellipsoid.a, ellipsoid.b, rb0);
+        var b0 = vinkeltr(this.ellipsoid.a, this.ellipsoid.b, rb0);
 
-        var e = (ellipsoid.a - ellipsoid.b) * (ellipsoid.a + ellipsoid.b) / Math.pow(ellipsoid.a, 2);
+        var e = (this.ellipsoid.a - this.ellipsoid.b) * (this.ellipsoid.a + this.ellipsoid.b) / Math.pow(this.ellipsoid.a, 2);
         var w0 = Math.sqrt(1 - e * (Math.pow(Math.sin(b0), 2)));
         var k1 = (1 - w0) / (1 + w0);
-        var c = ellipsoid.b * (1 + Math.pow(k1, 2) / 4) / (1 - k1);
+        var c = this.ellipsoid.b * (1 + Math.pow(k1, 2) / 4) / (1 - k1);
 
-        var d1 = (k1 / 2 - (3 * Math.pow(k1, 3))/ 16);
+        var d1 = (k1 / 2 - (3 * Math.pow(k1, 3)) / 16);
         var d2 = Math.pow(k1, 2) / 16;
         var d3 = Math.pow(k1, 3) / 48;
 
@@ -198,7 +257,7 @@ var Holsen = {};
         var a2 = vinkel(1, Math.sin(si2) * Math.tan(rb0));
         var rb2 = vinkel(Math.cos(a2), Math.tan(si2));
 
-        var b2 = vinkeltr(ellipsoid.a, ellipsoid.b, rb2);
+        var b2 = vinkeltr(this.ellipsoid.a, this.ellipsoid.b, rb2);
 
         if (b2 < 0) {
             la2 = la2 - Math.PI;
@@ -212,7 +271,7 @@ var Holsen = {};
 
         var dla = la2 - la1;
         var dsi = si2 - si1;
-        var n1 = (ellipsoid.a - ellipsoid.b) / (ellipsoid.a + ellipsoid.b);
+        var n1 = (this.ellipsoid.a - this.ellipsoid.b) / (this.ellipsoid.a + this.ellipsoid.b);
 
         var r = e * Math.cos(rb0) / 2;
         var r1 = (1 + n1 - k1 / 2 - Math.pow(k1, 2) / 4);
@@ -267,10 +326,11 @@ var Holsen = {};
     };
 
     //TODO: implement case with coords in plane are known
-    ns.konverg = function (ellipsoid, lon, lat, lat_0) {
+    //PUBLIC
+    var konverg = function (lon, lat, lat_0) {
         var dl = toRad(lat - lat_0);
         lon = toRad(lon);
-        var e = Math.pow(Math.cos(lon), 2) * (Math.pow(ellipsoid.a, 2) - Math.pow(ellipsoid.b, 2)) / Math.pow(ellipsoid.b, 2);
+        var e = Math.pow(Math.cos(lon), 2) * (Math.pow(this.ellipsoid.a, 2) - Math.pow(this.ellipsoid.b, 2)) / Math.pow(this.ellipsoid.b, 2);
         var t = Math.tan(lon);
         var si = Math.sin(lon);
         var co = Math.cos(lon);
@@ -279,14 +339,15 @@ var Holsen = {};
         return round(toDeg(c * 1.11111111111), 7);
     };
 
-    ns.bl_to_xy = function (ellipsoid, coordsys, lat, lon, lat_0, lon_0) {
+    //public
+    var bl_to_xy = function (lat, lon, lat_0, lon_0) {
         var l1 = toRad(lon_0);
         var b0 = toRad(lat_0);
         var l = toRad(lon);
         var br = toRad(lat);
         l = l - l1;
-        var et = (Math.pow(ellipsoid.a, 2) - Math.pow(ellipsoid.b, 2)) / Math.pow(ellipsoid.b, 2) * Math.pow(Math.cos(br), 2);
-        var n1 = Math.pow(ellipsoid.a, 2) / (Math.sqrt(1 + et) * ellipsoid.b);
+        var et = (Math.pow(this.ellipsoid.a, 2) - Math.pow(this.ellipsoid.b, 2)) / Math.pow(this.ellipsoid.b, 2) * Math.pow(Math.cos(br), 2);
+        var n1 = Math.pow(this.ellipsoid.a, 2) / (Math.sqrt(1 + et) * this.ellipsoid.b);
         var t = Math.tan(br);
         var a1 = n1 * Math.cos(br);
         var a2 = -(n1 * t * Math.pow(Math.cos(br), 2)) / 2.0;
@@ -297,10 +358,10 @@ var Holsen = {};
         var x = -a2 * Math.pow(l, 2) + a4 * Math.pow(l, 4) + a6 * Math.pow(l, 6);
         var y = a1 * l - a3 * Math.pow(l, 3) * a5 * Math.pow(l, 5);
 
-        x = x + meridbue2(br, b0, null, ellipsoidParams(ellipsoid), true);
+        x = x + meridbue2(br, b0, null, ellipsoidParams(this.ellipsoid), true);
 
-        x = x * coordsys.factor;
-        y = y * coordsys.factor + coordsys.y_add;
+        x = x * this.coordsystem.factor;
+        y = y * this.coordsystem.factor + this.coordsystem.y_add;
 
         return {
             "x": round(x, 4),
@@ -308,17 +369,18 @@ var Holsen = {};
         };
     };
 
-    ns.xy_to_bl = function (ellipsoid, coordsys, x, y, lat_0, lon_0) {
+    //PUBLIC
+    var xy_to_bl = function (x, y, lat_0, lon_0) {
         var l1 = toRad(lon_0);
         var b0 = toRad(lat_0);
 
-        x = x / coordsys.factor;
-        y = (y - coordsys.y_add) / coordsys.factor;
+        x = x / this.coordsystem.factor;
+        y = (y - this.coordsystem.y_add) / this.coordsystem.factor;
 
-        var bf = meridbue2(null, b0, x, ellipsoidParams(ellipsoid), false);
+        var bf = meridbue2(null, b0, x, ellipsoidParams(this.ellipsoid), false);
 
-        var etf = (ellipsoid.a - ellipsoid.b) * (ellipsoid.a + ellipsoid.b) / Math.pow(ellipsoid.b, 2) * Math.pow(Math.cos(bf), 2);
-        var nf = Math.pow(ellipsoid.a, 2) / (Math.sqrt(1 + etf) * ellipsoid.b);
+        var etf = (this.ellipsoid.a - this.ellipsoid.b) * (this.ellipsoid.a + this.ellipsoid.b) / Math.pow(this.ellipsoid.b, 2) * Math.pow(Math.cos(bf), 2);
+        var nf = Math.pow(this.ellipsoid.a, 2) / (Math.sqrt(1 + etf) * this.ellipsoid.b);
         var tf = Math.tan(bf);
 
         var b1 = 1 / (nf * Math.cos(bf));
@@ -338,4 +400,18 @@ var Holsen = {};
         };
     };
 
-}(Holsen));
+    return {
+        "meridbue": meridbue,
+        "meridbue_inv": meridbue_inv,
+        "krrad": krrad,
+        "lgeo1": lgeo1,
+        "konverg": konverg,
+        "bl_to_xy": bl_to_xy,
+        "xy_to_bl": xy_to_bl,
+        "getEllipsoids": function () {return ellipsoids; },
+        "setEllipsoid": setEllipsoid,
+        "getCoordsystems": function () {return coordsystems; },
+        "setCoordsystem": setCoordsystem
+
+    };
+};
