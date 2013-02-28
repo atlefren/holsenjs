@@ -241,6 +241,7 @@ var Holsen = function () {
 
     //PUBLIC
     var lgeo1 = function (lon, lat, length, azimuth) {
+
         checkEllipsoid();
         lat = toRad(lat);
         lon = toRad(lon);
@@ -289,7 +290,7 @@ var Holsen = function () {
 
         if (b2 < 0) {
             la2 = la2 - Math.PI;
-        } else if (lat < 0) {
+        } else if (lon < 0) {
             la2 = la2 + Math.PI;
         }
 
@@ -314,9 +315,9 @@ var Holsen = function () {
 
         var l2;
         if (azimuth > Math.PI) {
-            l2 = lat - dl;
+            l2 = lon - dl;
         } else {
-            l2 = lat + dl;
+            l2 = lon + dl;
         }
 
         if (l2 > 2 * Math.PI) {
@@ -327,23 +328,23 @@ var Holsen = function () {
             a2 = 2 * Math.PI - a2;
         }
 
-        if (lon < 0 && b2 < 0 && azimuth < Math.PI) {
+        if (lat < 0 && b2 < 0 && azimuth < Math.PI) {
             l2 = l2 - Math.PI;
         }
 
-        if (lon < 0 && b2 < 0 && azimuth > Math.PI) {
+        if (lat < 0 && b2 < 0 && azimuth > Math.PI) {
             l2 = l2 + Math.PI;
         }
 
         if (l2 > Math.PI) {
-            l2 = l2 - 2 * Math.PI;
-        } else if (l2 < Math.PI) {
-            l2 = l2 + 2 * Math.PI;
+            l2 = l2 - 2 * Math.PI + Math.PI;
+        } else if (l2 < -Math.PI) {
+            l2 = l2 + 2 + Math.PI + Math.PI;
         }
 
         return {
             "B2": round(toDeg(b2), 9),
-            "L2": round(toDeg(l2), 9),
+            "L2": round(toDeg(l2), 4),
             "A2": round(toDeg(a2), 9),
             "rb0": toDeg(rb0),
             "si1": toDeg(si1),

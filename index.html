@@ -1,0 +1,29 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+    <meta content="utf-8" http-equiv="encoding">
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+
+    <script type="text/javascript" src="source/holsenjs.js"></script>
+    <script type="text/javascript" src="clients/terminal.js"></script>
+
+    <script src="lib/jquery.mousewheel-min.js"></script>
+    <script src="lib/jquery.terminal-0.4.22.min.js"></script>
+    <link href="lib/jquery.terminal.css" rel="stylesheet"/>
+
+    <script type="text/javascript">
+        $(document).ready(function(){
+            var term = new HTerm();
+            term.createTerminal($("#term_demo"));
+        });
+    </script>
+    <title>HolsenJS</title>
+</head>
+<body>
+
+    <div id="term_demo"></div>
+
+</body>
+</html>
