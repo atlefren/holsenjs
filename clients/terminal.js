@@ -244,8 +244,8 @@ var HTerm = function () {
                     _.each(this.programs, function (program, key) {
                         term.echo("\t" + key + ": " + program.help);
                     });
-                } else if(this.programs[command]) {
-                    this.program = new this.programs[command].program;
+                } else if (this.programs[command]) {
+                    this.program = new this.programs[command].program();
                     this.program.setRunning(true);
                     term.set_prompt(command + "> ");
                     this.cmd(command, term);
@@ -257,11 +257,11 @@ var HTerm = function () {
     });
 
     var createTerminal = function (element) {
-        jQuery(function($, undefined) {
+        jQuery(function ($, undefined) {
             var terminal = new Terminal();
-            element.terminal(function(command, term) {
-                    terminal.cmd(command, term);
-                },
+            element.terminal(function (command, term) {
+                terminal.cmd(command, term);
+            },
                 {
                     greetings: 'Holsens smaaprog in JavaScript',
                     name: 'js_demo',
@@ -269,7 +269,7 @@ var HTerm = function () {
                     width: 600,
                     prompt: 'holsenJS> '
                 }
-            );
+                );
         });
     };
 
