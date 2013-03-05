@@ -256,55 +256,6 @@ var HTerm = function () {
         }
     });
 
-/*
-    var Terminal = function () {
-
-        var programs = {
-            "meridbue": {
-                "program": Meridbue,
-                "help": "BEREGNING AV MERIDIANBUEN MELLOM BREDDE B1 OG B2\n ELLER B2 NåR B1 OG MERIDIANBUEN G ER GITT"
-            },
-            "krrad": {
-                "program": Krrad,
-                "help": "BEREGNING AV KRUMNINGSRADIER"
-            },
-            "l-geo1": {
-                "program": Lgeo1,
-                "help": "BEREGNING AV GEOGRAFISKE KOORDINATER FOR PUNKT 2 OG ASIMUT FOR LINJEN I PUNKT 2"
-            }
-        };
-
-        var program;
-
-        var cmd = function (command, term) {
-
-            if (program && program.getRunning()) {
-                program.cmd(command, term, this);
-            } else {
-                term.set_prompt("holsenJS> ");
-                if (command === "help") {
-                    term.echo("Available commands are:");
-                    for (var key in programs) {
-                        term.echo("\t" + key + ": " + programs[key].help);
-                    }
-                }
-                else if(programs[command]) {
-                    program = new programs[command].program();
-                    program.setRunning(true);
-                    term.set_prompt( command + "> ");
-                    this.cmd(command, term);
-                } else {
-                    term.echo("Invalid command: " + command);
-                }
-            }
-        };
-        return {
-            "cmd": cmd
-        }
-    };
-
-    */
-
     var createTerminal = function (element) {
         jQuery(function($, undefined) {
             var terminal = new Terminal();
