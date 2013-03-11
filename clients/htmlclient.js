@@ -156,9 +156,9 @@
         params: [
             {"name": "ellipsoid", "type": EllipsoidChooser},
             {"name": "b1", "display_name": "B1", "help": "Breddegrad (lat), punkt 1", "type": Number},
-            {"name": "l1", "display_name": "L1", "help": "Lengdeegrad (lon), punkt 1", "type": Number},
+            {"name": "l1", "display_name": "L1", "help": "Lengdegrad (lon), punkt 1", "type": Number},
             {"name": "b2", "display_name": "B2", "help": "Breddegrad (lat), punkt 2", "type": Number},
-            {"name": "l2", "display_name": "L2", "help": "Lengdeegrad (lon), punkt 2", "type": Number}
+            {"name": "l2", "display_name": "L2", "help": "Lengdegrad (lon), punkt 2", "type": Number}
         ],
 
         description: "Geografiske koordinater er gitt for to punkter (B1, L1) og (B2, L2). Beregner geodetisk linje fra 1 til 2 og asimut i punkt 1 og 2.",
@@ -178,19 +178,41 @@
         }
     });
 
+    var Krrad = HolsenView.extend({
+
+        params: [
+            {"name": "ellipsoid", "type": EllipsoidChooser},
+            {"name": "br", "display_name": "BR", "help": "Breddegrad (lat) for punkt", "type": Number},
+            {"name": "a", "display_name": "A", "help": "Asimut", "type": Number}
+        ],
+
+        description: "Beregning av krummningsradier.",
+
+        compute: function(data) {
+            holsen.setEllipsoid(data.ellipsoid);
+
+            var res = holsen.krrad(data.br, data.a);
+
+            var print = [
+                {"name":  "M", "value": res.M, "help": "Meridiankrummningsradius"},
+                {"name":  "N", "value": res.N, "help": "Normalkrummningsradius"},
+                {"name":  "MR", "value": res.MR, "help": "Midlere krummningsradius"},
+                {"name":  "AR", "value": res.AR, "help": "Krumningsradius i retning asimut"}
+            ];
+            this.show_results(print);
+        }
+    });
+
     var programs = {
         "l-geo1": {
-            "program": Lgeo1,
-            "help": "BEREGNING AV GEOGRAFISKE KOORDINATER FOR PUNKT 2 OG ASIMUT FOR LINJEN I PUNKT 2"
+            "program": Lgeo1
         },
         "l-geo2": {
-            "program": Lgeo2,
-            "help": "GEOGRAFISKE KOORDINATER ER GITT FOR TO PUNKTER 1 OG 2,(B1,L1) OG(B2,L2).\n\t\tBEREGN GEODETISK LINJE FRA 1 TIL 2 OG ASIMUT I PUNKT 1 OG I PUNKT 2."
-        }/*,
-        "krrad": {
-            "program": Krrad,
-                "help": "BEREGNING AV KRUMNINGSRADIER"
+            "program": Lgeo2
         },
+        "krrad": {
+            "program": Krrad
+        }/*,
         "meridbue": {
             "program": Meridbue,
                 "help": "BEREGNING AV MERIDIANBUEN MELLOM BREDDE B1 OG B2\n\t\tELLER B2 NåR B1 OG MERIDIANBUEN G ER GITT"
