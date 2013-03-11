@@ -207,7 +207,6 @@ describe("HolsenJS", function () {
             holsen.setEllipsoid("international");
             var res = holsen.lgeo2(10.0, 50.0, 105.093972133, -62.950889964);
 
-            console.log(res);
             expect(res.A1).toBe(140);
             expect(res.A2).toBe(294.778189969);
             expect(res.S).toBe(15000000);

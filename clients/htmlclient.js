@@ -203,6 +203,102 @@
         }
     });
 
+    var tab_template = '<ul class="nav nav-tabs">' +
+        '<% _.each(tabs, function(tab, key){ %> ' +
+        '       <li <% if(key=== 0) {%> class="active" <% } %>>' +
+        '           <a class="tab" id="<%= key %>"><%=tab.name %></a>' +
+        '       </li>' +
+        '<% }); %> ' +
+        '</ul>';
+
+    var MeridbueB1B2 = HolsenView.extend({
+        params: [
+            {"name": "ellipsoid", "type": EllipsoidChooser},
+            {"name": "b1", "display_name": "B1", "help": "Breddegrad (lat) for punkt 1", "type": Number},
+            {"name": "b2", "display_name": "B2", "help": "Breddegrad (lat) for punkt 2", "type": Number}
+        ],
+
+        description: "Beregning av meridianbuen mellom breddene B1 og B2.",
+
+        compute: function(data) {
+            holsen.setEllipsoid(data.ellipsoid);
+
+            var res = holsen.meridbue(data.b1, data.b2);
+
+            var print = [
+                {"name":  "Meridianbue", "value": res}
+            ];
+            this.show_results(print);
+        }
+    });
+
+    var MeridbueB1G = HolsenView.extend({
+        params: [
+            {"name": "ellipsoid", "type": EllipsoidChooser},
+            {"name": "b1", "display_name": "B1", "help": "Breddegrad (lat) for punkt 1", "type": Number},
+            {"name": "g", "display_name": "G", "help": "Meridianbue fra punkt 1 til 2", "type": Number}
+        ],
+
+        description: "Beregner bredden B2 gitt B1 og meridianbuen fra B1 til B2.",
+
+        compute: function(data) {
+            holsen.setEllipsoid(data.ellipsoid);
+
+            var res = holsen.meridbue_inv(data.b1, data.g);
+
+            var print = [
+                {"name":  "B2", "value": res}
+            ];
+            this.show_results(print);
+        }
+    });
+
+    var ProgramWithSub = Backbone.View.extend({
+        subPrograms: [],
+
+        events: {
+            "click .tab": "changeTab"
+        },
+
+        initialize: function () {
+            _.bindAll(this, "changeTab");
+        },
+
+        render: function () {
+            this.$el.append(_.template(tab_template, {"tabs": this.subPrograms}));
+            this.$el.append($('<div id="program"></div>'));
+            this.showTab(0);
+            return this;
+        },
+
+        changeTab: function (e) {
+            var target = $(e.currentTarget);
+            _.each(this.$el.find(".tab"), function (tab) {
+                tab = $(tab);
+                if (tab.attr("id") === target.attr("id")) {
+                    tab.parent().addClass("active");
+                } else {
+                    tab.parent().removeClass("active");
+                }
+            });
+            this.showTab(target.attr("id"));
+        },
+
+        showTab: function (key) {
+            var el = this.$el.find("#program");
+            el.html("");
+            var view = new this.subPrograms[key].program().render();
+            el.append(view.$el);
+        }
+    });
+
+    var Meridbue = ProgramWithSub.extend({
+        subPrograms: [
+            {"program": MeridbueB1B2, "name": "B1, B2 gitt"},
+            {"program": MeridbueB1G, "name": "B1, G gitt"}
+        ]
+    });
+
     var programs = {
         "l-geo1": {
             "program": Lgeo1
@@ -212,11 +308,10 @@
         },
         "krrad": {
             "program": Krrad
-        }/*,
-        "meridbue": {
-            "program": Meridbue,
-                "help": "BEREGNING AV MERIDIANBUEN MELLOM BREDDE B1 OG B2\n\t\tELLER B2 NåR B1 OG MERIDIANBUEN G ER GITT"
         },
+        "meridbue": {
+            "program": Meridbue
+        }/*,
         "konverg": {
             "program": Konverg,
                 "help": "PROGRAMMET BEREGNER PLAN MERIDIANKONVERGENS I GAUSS KONFORME PROJEKSJON OG UTM.\n\t\t(B,L) ELLER (X,Y) MÅ VÆRE GITT I DET AKTUELLE PUNKT"
@@ -230,7 +325,6 @@
     $(document).ready(function () {
         _.each(programs, function(program, key) {
             var view = new program.program().render();
-            console.log(view);
             $("#" + key).find(".content").append(view.$el);
         });
     });
