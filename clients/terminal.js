@@ -6,7 +6,7 @@ var HTerm = function () {
     var ellipsoids = {"1": "bessel", "2": "international", "3": "wgs84"};
     var ell_txt = "VALG AV ELLIPSOIDE.P SETTES LIK 1 FOR:\nNORSK BESSELS,LIK 2 FOR INTERNASJONAL:\nOG LIK 3 FOR WGS-84-ELLIPSOIDEN:\nLEGG INN P:";
 
-    var coordsystems = {"1": "NGO", "2": "UTM"};
+
 
     var Program = Backbone.View.extend({
 
@@ -242,6 +242,7 @@ var HTerm = function () {
                     'C: ' + c);
 
             } else if (operation === 2) {
+                var coordsystems = {"1": "NGO", "2": "UTM"};
                 var b0 = parseFloat(this.getValue("b0"));
                 var x = parseFloat(this.getValue("x"));
                 var y = parseFloat(this.getValue("y"));
@@ -249,6 +250,56 @@ var HTerm = function () {
                 var res = holsen.konverg_xy(x, y, b0, l0);
                 term.echo('C ER MERIDIANKONVERGENS I GON\n' +
                     'C: ' + res);
+            }
+
+            Program.prototype.doCompute.apply(this, arguments);
+        }
+    });
+
+    var Blxy = ProgramWithSelection.extend({
+        args: [
+            {"name": "s", "text": "S SETTES LIK 0 FOR NGO-SYSTEM OG 1 FOR UTM.\nLEGG INN S:"},
+            {"name": "r", "text": "R SETTES LIK 0 NÅR (B,L) ER GITT I MOTSATT FALL SETTES R LIK 1.\nLEGG INN R:"},
+            {"name": "p", "text": ell_txt},
+            {"name": "b0", "text": "LEGG INN  BREDDEN FOR X-AKSENS NULLPUNKT:"},
+            {"name": "l1", "text": "LEGG INN GEOGRAFISK LENGDE FOR X-AKSEN:"},
+
+            {"name": "br", "text": "LEGG INN GEOGRAFISK BREDDE:", "for": 0},
+            {"name": "l", "text": "LEGG INN GEOGRAFISK LENGDE:", "for": 0},
+            {"name": "x", "text": "LEGG INN X:", "for": 1},
+            {"name": "y", "text": "LEGG INN Y:", "for": 1}
+
+        ],
+
+        doCompute: function (term) {
+            var p = this.getValue("p");
+            var holsen = new Holsen();
+            holsen.setEllipsoid(ellipsoids[p]);
+
+            var s = this.getValue("s");
+            var coordsystems = {"0": "NGO", "1": "UTM"};
+            holsen.setCoordsystem(coordsystems[s]);
+
+            var operation = parseInt(this.getValue("r"), 10);
+            var b0 = parseFloat(this.getValue("b0"));
+            var l1 = parseFloat(this.getValue("l1"));
+
+            if (operation === 0) {
+                var br = parseFloat(this.getValue("br"));
+                var l = parseFloat(this.getValue("l"));
+                term.echo("HER STARTER BEREGNINGEN MED B OG L SOM KJENT");
+                var res = holsen.bl_to_xy(l, br, l1, b0);
+                term.echo("X:" + res.x);
+                term.echo("Y:" + res.y);
+
+            } else if (operation === 1) {
+                var x = parseFloat(this.getValue("x"));
+                var y = parseFloat(this.getValue("y"));
+                term.echo("HER STARTER BEREGNINGEN MED KJENT X OG Y");
+                var res2 = holsen.xy_to_bl(x, y, l1, b0);
+                term.echo("GEOGRAFISKE KOORDINATER");
+                term.echo("B:" + res2.lon);
+                term.echo("L:" + res2.lat);
             }
 
             Program.prototype.doCompute.apply(this, arguments);
@@ -277,6 +328,10 @@ var HTerm = function () {
             "konverg": {
                 "program": Konverg,
                 "help": "PROGRAMMET BEREGNER PLAN MERIDIANKONVERGENS I GAUSS KONFORME PROJEKSJON OG UTM.\n\t\t(B,L) ELLER (X,Y) MÅ VÆRE GITT I DET AKTUELLE PUNKT"
+            },
+            "blxy": {
+                "program": Blxy,
+                "help": "BEREGING AV PLANE KOORDINATER (X,Y) AV GEOGRAFISKE(B,l) OG OMVENDT."
             }
         },
 
