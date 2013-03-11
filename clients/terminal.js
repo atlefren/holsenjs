@@ -362,9 +362,6 @@ var HTerm = function () {
     var createTerminal = function (element) {
         jQuery(function ($, undefined) {
 
-
-
-
             var terminal = new Terminal();
             element.terminal(function (command, term) {
                 terminal.cmd(command, term);

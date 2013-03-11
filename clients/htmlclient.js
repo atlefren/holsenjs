@@ -6,6 +6,9 @@
     var number_template = '<label class="control-label" for="<%= name %>"><%= display_name %></label>' +
         '<div class="controls">' +
         '   <input class="input-small" type="text" id="<%= name %>">' +
+        '       <% if(help) { %>' +
+        '           <span class="help-inline"><%= help %></span>' +
+        '       <% }; %>' +
         '</div>';
 
     var ellipsoid_template = '<label class="control-label" for="<%= name %>"><%= display_name %></label>' +
@@ -72,6 +75,7 @@
 
         className: "form-horizontal",
 
+        description: "",
 
         events: {
             "click .compute-btn": "validateData"
@@ -88,6 +92,8 @@
             this.inputs =_.map(this.params, function(param) {
                 return new param.type(param).render();
             });
+
+            this.$el.append('<p class="description">' + this.description + '<p>');
             this.$el.append(_.pluck(this.inputs, "$el"));
             this.$el.append(_.template(sumbit_template));
 
@@ -124,20 +130,49 @@
 
         params: [
             {"name": "ellipsoid", "type": EllipsoidChooser},
-            {"name": "b1", "display_name": "B1", "help": "noe", "type": Number},
-            {"name": "l1", "display_name": "L1", "help": "noe", "type": Number},
-            {"name": "s12", "display_name": "S12", "help": "noe", "type": Number},
-            {"name": "a12", "display_name": "A12", "help": "noe", "type": Number}
+            {"name": "b1", "display_name": "B1", "help": "Breddegrad (lat), punkt 1", "type": Number},
+            {"name": "l1", "display_name": "L1", "help": "Lengdeegrad (lon), punkt 1", "type": Number},
+            {"name": "s12", "display_name": "S12", "help": "Lengde geodetiske bue 1-2 (meter)", "type": Number},
+            {"name": "a12", "display_name": "A12", "help": "Asimut fra 1 til 2", "type": Number}
         ],
+
+        description: "Beregning av geodetiske koordinater for punkt 2  og asimut for linjen i punkt 2.",
 
         compute: function(data) {
             holsen.setEllipsoid(data.ellipsoid);
             var res = holsen.lgeo1(data.l1, data.b1, data.s12, data.a12);
 
             var print = [
-                {"name":  "B2", "value": res.B2, "help": "Negativ B2 betyr sydlig bredde"},
-                {"name":  "L2", "value": res.L2},
-                {"name":  "A2", "value": res.A2, "help": "A2 er i forhold til nord, også på sydlige halvellipsoide."}
+                {"name":  "B2", "value": res.B2, "help": "Breddegrad (lat) for punkt 2 (negativ verdi betyr sydlig bredde)."},
+                {"name":  "L2", "value": res.L2, "help": "Lengdegrad (lon) for punkt 2.)"},
+                {"name":  "A2", "value": res.A2, "help": "Asimut fra 2 til 1 (i forhold til nord)."}
+            ];
+            this.show_results(print);
+        }
+    });
+
+    var Lgeo2 = HolsenView.extend({
+
+        params: [
+            {"name": "ellipsoid", "type": EllipsoidChooser},
+            {"name": "b1", "display_name": "B1", "help": "Breddegrad (lat), punkt 1", "type": Number},
+            {"name": "l1", "display_name": "L1", "help": "Lengdeegrad (lon), punkt 1", "type": Number},
+            {"name": "b2", "display_name": "B2", "help": "Breddegrad (lat), punkt 2", "type": Number},
+            {"name": "l2", "display_name": "L2", "help": "Lengdeegrad (lon), punkt 2", "type": Number}
+        ],
+
+        description: "Geografiske koordinater er gitt for to punkter (B1, L1) og (B2, L2). Beregner geodetisk linje fra 1 til 2 og asimut i punkt 1 og 2.",
+
+        compute: function(data) {
+            holsen.setEllipsoid(data.ellipsoid);
+
+            var res = holsen.lgeo2(data.l1, data.b1, data.l2, data.b2);
+
+
+            var print = [
+                {"name":  "A1", "value": res.A1, "help": "Asimut 1 til 2 (i forhold til nord)"},
+                {"name":  "A2", "value": res.A2, "help": "Asimut 2 til 1 (i forhold til nord)"},
+                {"name":  "S", "value": res.S, "help": "Geodetisk linje fra 1 til 2"}
             ];
             this.show_results(print);
         }
@@ -147,11 +182,11 @@
         "l-geo1": {
             "program": Lgeo1,
             "help": "BEREGNING AV GEOGRAFISKE KOORDINATER FOR PUNKT 2 OG ASIMUT FOR LINJEN I PUNKT 2"
-        }/*,
+        },
         "l-geo2": {
             "program": Lgeo2,
-                "help": "GEOGRAFISKE KOORDINATER ER GITT FOR TO PUNKTER 1 OG 2,(B1,L1) OG(B2,L2).\n\t\tBEREGN GEODETISK LINJE FRA 1 TIL 2 OG ASIMUT I PUNKT 1 OG I PUNKT 2."
-        },
+            "help": "GEOGRAFISKE KOORDINATER ER GITT FOR TO PUNKTER 1 OG 2,(B1,L1) OG(B2,L2).\n\t\tBEREGN GEODETISK LINJE FRA 1 TIL 2 OG ASIMUT I PUNKT 1 OG I PUNKT 2."
+        }/*,
         "krrad": {
             "program": Krrad,
                 "help": "BEREGNING AV KRUMNINGSRADIER"
@@ -173,6 +208,7 @@
     $(document).ready(function () {
         _.each(programs, function(program, key) {
             var view = new program.program().render();
+            console.log(view);
             $("#" + key).find(".content").append(view.$el);
         });
     });
