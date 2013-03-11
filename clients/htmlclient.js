@@ -34,6 +34,20 @@
         }
     });
 
+    var CoordsysChooser = Backbone.View.extend({
+
+        "className": "control-group",
+
+        render: function () {
+            var data = {"name": "coordsys", "display_name": "Koordinatsystem", "ellipsoids": [{"id": "NGO", "name": "NGO 1948"}, {"id": "UTM", "name": "UTM"}]};
+            this.$el.append(_.template(ellipsoid_template, data));
+            return this;
+        },
+        getData: function () {
+            return this.$el.find("select").val();
+        }
+    });
+
     var Number = Backbone.View.extend({
 
         "className": "control-group",
@@ -203,6 +217,7 @@
         }
     });
 
+
     var tab_template = '<ul class="nav nav-tabs">' +
         '<% _.each(tabs, function(tab, key){ %> ' +
         '       <li <% if(key=== 0) {%> class="active" <% } %>>' +
@@ -210,6 +225,45 @@
         '       </li>' +
         '<% }); %> ' +
         '</ul>';
+
+    var ProgramWithSub = Backbone.View.extend({
+        subPrograms: [],
+
+        events: {
+            "click .tab": "changeTab"
+        },
+
+        initialize: function () {
+            _.bindAll(this, "changeTab");
+        },
+
+        render: function () {
+            this.$el.append(_.template(tab_template, {"tabs": this.subPrograms}));
+            this.$el.append($('<div id="program"></div>'));
+            this.showTab(0);
+            return this;
+        },
+
+        changeTab: function (e) {
+            var target = $(e.currentTarget);
+            _.each(this.$el.find(".tab"), function (tab) {
+                tab = $(tab);
+                if (tab.attr("id") === target.attr("id")) {
+                    tab.parent().addClass("active");
+                } else {
+                    tab.parent().removeClass("active");
+                }
+            });
+            this.showTab(target.attr("id"));
+        },
+
+        showTab: function (key) {
+            var el = this.$el.find("#program");
+            el.html("");
+            var view = new this.subPrograms[key].program().render();
+            el.append(view.$el);
+        }
+    });
 
     var MeridbueB1B2 = HolsenView.extend({
         params: [
@@ -253,49 +307,64 @@
         }
     });
 
-    var ProgramWithSub = Backbone.View.extend({
-        subPrograms: [],
-
-        events: {
-            "click .tab": "changeTab"
-        },
-
-        initialize: function () {
-            _.bindAll(this, "changeTab");
-        },
-
-        render: function () {
-            this.$el.append(_.template(tab_template, {"tabs": this.subPrograms}));
-            this.$el.append($('<div id="program"></div>'));
-            this.showTab(0);
-            return this;
-        },
-
-        changeTab: function (e) {
-            var target = $(e.currentTarget);
-            _.each(this.$el.find(".tab"), function (tab) {
-                tab = $(tab);
-                if (tab.attr("id") === target.attr("id")) {
-                    tab.parent().addClass("active");
-                } else {
-                    tab.parent().removeClass("active");
-                }
-            });
-            this.showTab(target.attr("id"));
-        },
-
-        showTab: function (key) {
-            var el = this.$el.find("#program");
-            el.html("");
-            var view = new this.subPrograms[key].program().render();
-            el.append(view.$el);
-        }
-    });
-
     var Meridbue = ProgramWithSub.extend({
         subPrograms: [
             {"program": MeridbueB1B2, "name": "B1, B2 gitt"},
             {"program": MeridbueB1G, "name": "B1, G gitt"}
+        ]
+    });
+
+    var KonvergGeog = HolsenView.extend({
+        params: [
+            {"name": "ellipsoid", "type": EllipsoidChooser},
+            {"name": "l0", "display_name": "L0", "help": "Lengdegrad (lon) for x-aksen", "type": Number},
+            {"name": "b1", "display_name": "B1", "help": "Breddegrad (lat) for punktet", "type": Number},
+            {"name": "l1", "display_name": "L1", "help": "Lengdegrad (lon) for punktet", "type": Number}
+        ],
+
+        description: "Beregner plan meridiankonvergens gitt punkt (B, L)",
+
+        compute: function(data) {
+            holsen.setEllipsoid(data.ellipsoid);
+
+            var res = holsen.konverg(data.b1, data.l1, data.l0)
+
+            var print = [
+                {"name":  "C", "value": res, "help": "Meridankonvergens (gon)"}
+            ];
+            this.show_results(print);
+        }
+    });
+
+    var KonvergPlan = HolsenView.extend({
+        params: [
+            {"name": "ellipsoid", "type": EllipsoidChooser},
+            {"name": "coordsys", type: CoordsysChooser},
+            {"name": "l0", "display_name": "L0", "help": "Lengdegrad (lon) for x-aksen", "type": Number},
+            {"name": "b0", "display_name": "B0", "help": "Breddegrad (lat) for x-aksens nullpunkt", "type": Number},
+            {"name": "x", "display_name": "X", "help": "X for punktet", "type": Number},
+            {"name": "y", "display_name": "Y", "help": "Y for punktet", "type": Number}
+        ],
+
+        description: "Beregner plan meridiankonvergens gitt punkt (X, Y)",
+
+        compute: function (data) {
+            holsen.setEllipsoid(data.ellipsoid);
+            holsen.setCoordsystem(data.coordsys);
+
+            var res = holsen.konverg_xy(data.x, data.y, data.b0, data.l0);
+
+            var print = [
+                {"name":  "C", "value": res, "help": "Meridankonvergens (gon)"}
+            ];
+            this.show_results(print);
+        }
+    });
+
+    var Konverg = ProgramWithSub.extend({
+        subPrograms: [
+            {"program": KonvergGeog, "name": "Geografiske koordinater"},
+            {"program": KonvergPlan, "name": "Plane koordinater"}
         ]
     });
 
@@ -311,11 +380,10 @@
         },
         "meridbue": {
             "program": Meridbue
-        }/*,
-        "konverg": {
-            "program": Konverg,
-                "help": "PROGRAMMET BEREGNER PLAN MERIDIANKONVERGENS I GAUSS KONFORME PROJEKSJON OG UTM.\n\t\t(B,L) ELLER (X,Y) MÅ VÆRE GITT I DET AKTUELLE PUNKT"
         },
+        "konverg": {
+            "program": Konverg
+        }/*,
         "blxy": {
             "program": Blxy,
                 "help": "BEREGING AV PLANE KOORDINATER (X,Y) AV GEOGRAFISKE(B,l) OG OMVENDT."
