@@ -6,6 +6,8 @@ var HTerm = function () {
     var ellipsoids = {"1": "bessel", "2": "international", "3": "wgs84"};
     var ell_txt = "VALG AV ELLIPSOIDE.P SETTES LIK 1 FOR:\nNORSK BESSELS,LIK 2 FOR INTERNASJONAL:\nOG LIK 3 FOR WGS-84-ELLIPSOIDEN:\nLEGG INN P:";
 
+    var coordsystems = {"1": "NGO", "2": "UTM"};
+
     var Program = Backbone.View.extend({
 
         currentArg: null,
@@ -211,6 +213,48 @@ var HTerm = function () {
         }
     });
 
+    var Konverg = ProgramWithSelection.extend({
+        args: [
+            {"name": "r", "text": "I SETTES LIK 1 NÅR (B,L) ER GITT OG 2 NÅR (X,Y) ER GITT'"},
+            {"name": "p", "text": ell_txt},
+            {"name": "l0", "text": "LEGG INN LENGDEGRADEN FOR FOR X-AKSEN:"},
+            {"name": "b1", "text": "LEGG INN BREDDE:", "for": 1},
+            {"name": "l1", "text": "LEGG INN LENGDE:", "for": 1},
+            {"name": "b0", "text": "LEGG INN BREDDE FOR X-AKSENS NULLPUNKT:", "for": 2},
+            {"name": "x", "text": "LEGG INN X:", "for": 2},
+            {"name": "y", "text": "LEGG INN Y:", "for": 2},
+            {"name": "s", "text": "S SETTES LIK 1 FOR NGO-SYSTEM OG LIK 2 FOR UTM:", "for": 2}
+        ],
+
+        doCompute: function (term) {
+            var p = this.getValue("p");
+            var holsen = new Holsen();
+            holsen.setEllipsoid(ellipsoids[p]);
+
+            var operation = parseInt(this.getValue("r"), 10);
+            var l0 = parseFloat(this.getValue("l0"));
+            if (operation === 1) {
+                var b1 = parseFloat(this.getValue("b1"));
+                var l1 = parseFloat(this.getValue("l1"));
+
+                var c = holsen.konverg(b1, l1, l0);
+                term.echo('C ER MERIDIANKONVERGENS I GON\n' +
+                    'C: ' + c);
+
+            } else if (operation === 2) {
+                var b0 = parseFloat(this.getValue("b0"));
+                var x = parseFloat(this.getValue("x"));
+                var y = parseFloat(this.getValue("y"));
+                holsen.setCoordsystem(coordsystems[this.getValue("s")]);
+                var res = holsen.konverg_xy(x, y, b0, l0);
+                term.echo('C ER MERIDIANKONVERGENS I GON\n' +
+                    'C: ' + res);
+            }
+
+            Program.prototype.doCompute.apply(this, arguments);
+        }
+    });
+
     var Terminal = Backbone.View.extend({
 
         programs: {
@@ -220,7 +264,7 @@ var HTerm = function () {
             },
             "l-geo2": {
                 "program": Lgeo2,
-                "help": "GEOGRAFISKE KOORDINATER ER GITT FOR TO PUNKTER 1 OG 2,(B1,L1) OG(B2,L2).BEREGN GEODETISK LINJE FRA 1 TIL 2 OG ASIMUT I PUNKT 1 OG I PUNKT 2."
+                "help": "GEOGRAFISKE KOORDINATER ER GITT FOR TO PUNKTER 1 OG 2,(B1,L1) OG(B2,L2).\n\t\tBEREGN GEODETISK LINJE FRA 1 TIL 2 OG ASIMUT I PUNKT 1 OG I PUNKT 2."
             },
             "krrad": {
                 "program": Krrad,
@@ -228,7 +272,11 @@ var HTerm = function () {
             },
             "meridbue": {
                 "program": Meridbue,
-                "help": "BEREGNING AV MERIDIANBUEN MELLOM BREDDE B1 OG B2\n ELLER B2 NåR B1 OG MERIDIANBUEN G ER GITT"
+                "help": "BEREGNING AV MERIDIANBUEN MELLOM BREDDE B1 OG B2\n\t\tELLER B2 NåR B1 OG MERIDIANBUEN G ER GITT"
+            },
+            "konverg": {
+                "program": Konverg,
+                "help": "PROGRAMMET BEREGNER PLAN MERIDIANKONVERGENS I GAUSS KONFORME PROJEKSJON OG UTM.\n\t\t(B,L) ELLER (X,Y) MÅ VÆRE GITT I DET AKTUELLE PUNKT"
             }
         },
 
@@ -242,7 +290,7 @@ var HTerm = function () {
                 if (command === "help") {
                     term.echo("Available commands are:");
                     _.each(this.programs, function (program, key) {
-                        term.echo("\t" + key + ": " + program.help);
+                        term.echo("\t" + key + ":\n\t\t" + program.help);
                     });
                 } else if (this.programs[command]) {
                     this.program = new this.programs[command].program();
