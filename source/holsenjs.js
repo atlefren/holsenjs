@@ -563,8 +563,8 @@ var Holsen = function () {
         l = toDeg(l + l1);
         br = toDeg(br);
         return {
-            "lon": round(l, 9),
-            "lat": round(br, 9)
+            "lon": round(br, 9),
+            "lat": round(l, 9)
         };
     };
 

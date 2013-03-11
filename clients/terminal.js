@@ -298,8 +298,8 @@ var HTerm = function () {
                 term.echo("HER STARTER BEREGNINGEN MED KJENT X OG Y");
                 var res2 = holsen.xy_to_bl(x, y, l1, b0);
                 term.echo("GEOGRAFISKE KOORDINATER");
-                term.echo("B:" + res2.lon);
-                term.echo("L:" + res2.lat);
+                term.echo("B:" + res2.lat);
+                term.echo("L:" + res2.lon);
             }
 
             Program.prototype.doCompute.apply(this, arguments);

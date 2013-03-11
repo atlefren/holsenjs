@@ -368,6 +368,66 @@
         ]
     });
 
+    var BlToXy = HolsenView.extend({
+        params: [
+            {"name": "ellipsoid", "type": EllipsoidChooser},
+            {"name": "coordsys", type: CoordsysChooser},
+            {"name": "b0", "display_name": "B0", "help": "Breddegrad (lat) for x-aksens nullpunkt", "type": Number},
+            {"name": "l0", "display_name": "L0", "help": "Lengdegrad (lon) for x-aksen", "type": Number},
+            {"name": "br", "display_name": "BR", "help": "Breddegrad (lat)", "type": Number},
+            {"name": "l", "display_name": "L", "help": "Lengdegrad (lon)", "type": Number}
+        ],
+
+        description: "Beregner plane koordinater (X, Y), gitt geografiske (B, L).",
+
+        compute: function (data) {
+            holsen.setEllipsoid(data.ellipsoid);
+            holsen.setCoordsystem(data.coordsys);
+
+            console.log(data.l, data.br, data.l, data.b0);
+            var res = holsen.bl_to_xy(data.l, data.br, data.l0, data.b0);
+            console.log(res);
+            var print = [
+                {"name":  "X", "value": res.x},
+                {"name":  "Y", "value": res.y}
+            ];
+            this.show_results(print);
+        }
+    });
+
+    var XyToBl = HolsenView.extend({
+        params: [
+            {"name": "ellipsoid", "type": EllipsoidChooser},
+            {"name": "coordsys", type: CoordsysChooser},
+            {"name": "b0", "display_name": "B0", "help": "Breddegrad (lat) for x-aksens nullpunkt", "type": Number},
+            {"name": "l0", "display_name": "L0", "help": "Lengdegrad (lon) for x-aksen", "type": Number},
+            {"name": "x", "display_name": "X", "help": "X for punktet", "type": Number},
+            {"name": "y", "display_name": "Y", "help": "Y for punktet", "type": Number}
+        ],
+
+        description: "Beregner geografiske koordinater (B, L), gitt plane (x, y).",
+
+        compute: function (data) {
+            holsen.setEllipsoid(data.ellipsoid);
+            holsen.setCoordsystem(data.coordsys);
+
+            var res = holsen.xy_to_bl(data.x, data.y, data.l0, data.b0);
+
+            var print = [
+                {"name": "BR", "value": res.lat, "help": "Breddegrad (lat)"},
+                {"name": "L", "value": res.lon, "help": "Lengdegrad (lon)"}
+            ];
+            this.show_results(print);
+        }
+    });
+
+    var Blxy = ProgramWithSub.extend({
+        subPrograms: [
+            {"program": BlToXy, "name": "Beregn plane koordinater"},
+            {"program": XyToBl, "name": "Beregn geografiske koordinater"}
+        ]
+    });
+
     var programs = {
         "l-geo1": {
             "program": Lgeo1
@@ -383,11 +443,10 @@
         },
         "konverg": {
             "program": Konverg
-        }/*,
+        },
         "blxy": {
-            "program": Blxy,
-                "help": "BEREGING AV PLANE KOORDINATER (X,Y) AV GEOGRAFISKE(B,l) OG OMVENDT."
-        }*/
+            "program": Blxy
+        }
     };
 
     $(document).ready(function () {

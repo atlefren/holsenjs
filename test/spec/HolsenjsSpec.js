@@ -323,8 +323,8 @@ describe("HolsenJS", function () {
 
                 var res = holsen.xy_to_bl(6997206.3054, 555525.1191, 9, 0);
 
-                expect(res.lon).toBe(10.100107375);
-                expect(res.lat).toBe(63.099999576);
+                expect(res.lat).toBe(10.100107375);
+                expect(res.lon).toBe(63.099999576);
 
                 /*
                 expect(res.lon).toBe(10.100000000);
