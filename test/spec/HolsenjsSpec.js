@@ -182,6 +182,7 @@ describe("HolsenJS", function () {
 
         it("should reproduce the results from the manual", function () {
             holsen.setEllipsoid("international");
+                                 //10  50  15000000  140
             var res = holsen.lgeo1(10, 50, 15000000, 140);
 
             expect(res.B2).toBe(-62.950889964);

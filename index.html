@@ -1,19 +1,28 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-        "http://www.w3.org/TR/html4/loose.dtd">
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
     <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
     <meta content="utf-8" http-equiv="encoding">
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
 
-    <script type="text/javascript" src="source/holsenjs.js"></script>
-    <script type="text/javascript" src="clients/terminal.js"></script>
+
 
     <script src="lib/underscore-min.js"></script>
     <script src="lib/backbone-min.js"></script>
+
+    <script src="lib/bootstrap/js/bootstrap.min.js"></script>
+
     <script src="lib/jquery.mousewheel-min.js"></script>
     <script src="lib/jquery.terminal-0.4.22.min.js"></script>
+
+    <script type="text/javascript" src="source/holsenjs.js"></script>
+    <script type="text/javascript" src="clients/terminal.js"></script>
+    <script type="text/javascript" src="clients/htmlclient.js"></script>
+
     <link href="lib/jquery.terminal.css" rel="stylesheet"/>
+
+    <link href="lib/bootstrap/css/bootstrap.css" rel="stylesheet"/>
+    <link href="lib/bootstrap/css/bootstrap-responsive.css" rel="stylesheet"/>
 
     <script type="text/javascript">
         $(document).ready(function(){
@@ -21,11 +30,116 @@
             term.createTerminal($("#term_demo"));
         });
     </script>
-    <title>HolsenJS</title>
+
+    <style type="text/css">
+        .sidenav .icon-chevron-right {
+            float: right;
+            margin-top: 2px;
+            margin-right: -6px;
+            opacity: .25;
+        }
+    </style>
+    <title>Holsen.js</title>
 </head>
 <body>
+<div class="container">
 
-    <div id="term_demo"></div>
+    <header class="jumbotron subhead" id="overview">
+        <div class="container">
+            <h1>Holsen.js</h1>
+            <p class="lead">Lorem ipsum etc.</p>
+        </div>
+    </header>
+
+    <div class="row">
+        <div class="span3">
+            <ul class="nav nav-tabs nav-stacked sidenav">
+                <li><a href="#l-geo1"><i class="icon-chevron-right"></i> 1. Geodetiske hovedoppgave (l-geo1) </a></li>
+                <li><a href="#l-geo2"><i class="icon-chevron-right"></i> 2. Geodetiske hovedoppgave (l-geo2)</a></li>
+                <li><a href="#krrad"><i class="icon-chevron-right"></i> Krummningsradier (krrad)</a></li>
+                <li><a href="#meridbue"><i class="icon-chevron-right"></i> Meridianbue (meridbue)</a></li>
+                <li><a href="#konverg"><i class="icon-chevron-right"></i> Meridiankonvergens (konverg)</a></li>
+                <li><a href="#blxy"><i class="icon-chevron-right"></i> Koordinatomregning (blxy)</a></li>
+                <li><a href="#terminal"><i class="icon-chevron-right"></i> Terminal</a></li>
+                <li><a href="#about"><i class="icon-chevron-right"></i> Om holsen.js</a></li>
+            </ul>
+        </div>
+        <div class="span9">
+            <section id="l-geo1">
+                <div class="page-header">
+                    <h1>1. Geodetiske hovedoppgave</h1>
+                </div>
+                <div class="content">
+
+                </div>
+            </section>
+            <section id="l-geo2">
+                <div class="page-header">
+                    <h1>2. Geodetiske hovedoppgave</h1>
+                </div>
+            </section>
+            <section id="krrad">
+                <div class="page-header">
+                    <h1>Krummningsradier</h1>
+                </div>
+            </section>
+            <section id="meridbue">
+                <div class="page-header">
+                    <h1>Meridianbue</h1>
+                </div>
+            </section>
+            <section id="konverg">
+                <div class="page-header">
+                    <h1>Meridiankonvergens</h1>
+                </div>
+            </section>
+            <section id="blxy">
+                <div class="page-header">
+                    <h1>Koordinatomregning</h1>
+                </div>
+            </section>
+            <section id="terminal">
+                <div class="page-header">
+                    <h1>Terminal</h1>
+                </div>
+                <div id="term_demo"></div>
+            </section>
+            <section id="about">
+                <div class="page-header">
+                    <h1>Om</h1>
+                </div>
+                <p>Beskrivelse her...</p>
+            </section>
+        </div>
+    </div>
+</div>
+
+
+<script type="text/template" id="l-geo1_template">
+    <form class="form-horizontal">
+        <div class="control-group">
+            <label class="control-label" for="inputEmail">B1</label>
+            <div class="controls">
+                <input type="text" id="inputEmail" placeholder="Email">
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label" for="inputPassword">Password</label>
+            <div class="controls">
+                <input type="password" id="inputPassword" placeholder="Password">
+            </div>
+        </div>
+        <div class="control-group">
+            <div class="controls">
+                <label class="checkbox">
+                    <input type="checkbox"> Remember me
+                </label>
+                <button type="submit" class="btn">Sign in</button>
+            </div>
+        </div>
+    </form>
+</script>
+
 
 </body>
 </html>

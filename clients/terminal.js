@@ -361,6 +361,10 @@ var HTerm = function () {
 
     var createTerminal = function (element) {
         jQuery(function ($, undefined) {
+
+
+
+
             var terminal = new Terminal();
             element.terminal(function (command, term) {
                 terminal.cmd(command, term);
@@ -370,9 +374,18 @@ var HTerm = function () {
                     name: 'js_demo',
                     height: 600,
                     width: 600,
-                    prompt: 'holsenJS> '
+                    prompt: 'holsenJS> ',
+                    enabled: false
                 }
                 );
+
+            $(document).click(function (e) {
+                if($(e.target).attr("id") === "term_demo") {
+                    element.enable();
+                } else {
+                    element.disable();
+                }
+            });
         });
     };
 
