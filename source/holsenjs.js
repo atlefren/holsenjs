@@ -228,7 +228,7 @@ var Holsen = function () {
         var a1 = Math.atan(t / n);
         if (t > 0 && n > 0) {
             return a1;
-        } else if (t > 0 && n !== 0) {
+        } else if (n < 0 && (t < 0 || t > 0)) {
             return a1 + Math.PI;
         } else {
             return a1 + Math.PI * 2;
@@ -290,7 +290,7 @@ var Holsen = function () {
 
         if (b2 < 0) {
             la2 = la2 - Math.PI;
-        } else if (lon < 0) {
+        } else if (lat < 0) {
             la2 = la2 + Math.PI;
         }
 
@@ -344,7 +344,7 @@ var Holsen = function () {
 
         return {
             "B2": round(toDeg(b2), 9),
-            "L2": round(toDeg(l2), 4),
+            "L2": round(toDeg(l2), 9),
             "A2": round(toDeg(a2), 9),
             "rb0": toDeg(rb0),
             "si1": toDeg(si1),
@@ -374,10 +374,9 @@ var Holsen = function () {
         var dl = lon2 - lon1;
 
         if (Math.abs(dl) < 2 * Math.pow(10, -8)) {
-            console.log('BRUK HELLER ET MERIDIANBUEPROGRAM');
-            var d = Math.PI - Math.abs(dl);
+            throw new Error("Unable to compute. Use a meridian arc program!");
         } else {
-            if (dl < Math.PI) {
+            if (dl < -Math.PI) {
                 dl = dl + 2 * Math.PI;
             } else if (dl > Math.PI) {
                 dl = dl - 2 * Math.PI;

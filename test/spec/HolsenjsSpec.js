@@ -6,6 +6,14 @@ describe("HolsenJS", function () {
 
     beforeEach(function () {
         holsen = new Holsen();
+
+        this.addMatchers({
+            toBeComparableTo: function (expected) {
+                var diff = Math.abs(expected - this.actual);
+                return diff < 10e-5;
+            }
+        });
+
     });
 
     it("should be defined", function () {
@@ -184,9 +192,36 @@ describe("HolsenJS", function () {
             holsen.setEllipsoid("international");
             var res = holsen.lgeo1(10, 50, 15000000, 140);
 
-            expect(res.B2).toBe(-62.950889964);
-            expect(res.L2).toBe(105.0940);
-            expect(res.A2).toBe(294.778189969);
+            expect(res.B2).toBeComparableTo(-62.950889964);
+            expect(res.L2).toBeComparableTo(105.093972133);
+            expect(res.A2).toBeComparableTo(294.778189969);
+        });
+
+        it("should work for large azimuths", function () {
+            holsen.setEllipsoid("international");
+            var res = holsen.lgeo1(10, 50, 15000000, 182);
+
+            expect(res.B2).toBeComparableTo(-84.953807233);
+            expect(res.L2).toBeComparableTo(-6.220142106);
+            expect(res.A2).toBeComparableTo(14.755221889);
+        });
+
+        it("should work for negative longitudes", function () {
+            holsen.setEllipsoid("international");
+            var res = holsen.lgeo1(-10, 50, 15000000, 140);
+
+            expect(res.B2).toBeComparableTo(-62.950889964);
+            expect(res.L2).toBeComparableTo(85.093972133);
+            expect(res.A2).toBeComparableTo(294.778189969);
+        });
+
+        it("should work for negative latitudes", function () {
+            holsen.setEllipsoid("international");
+            var res = holsen.lgeo1(10, -50, 15000000, 140);
+
+            expect(res.B2).toBeComparableTo(11.098044804);
+            expect(res.L2).toBeComparableTo(162.216931385);
+            expect(res.A2).toBeComparableTo(204.950196772);
         });
 
         it("should throw an error when ellipsoid not set", function () {
@@ -202,7 +237,6 @@ describe("HolsenJS", function () {
             expect(holsen.lgeo2).toBeDefined();
         });
 
-
         it("should reproduce the results from the manual", function () {
             holsen.setEllipsoid("international");
             var res = holsen.lgeo2(10.0, 50.0, 105.093972133, -62.950889964);
@@ -210,6 +244,32 @@ describe("HolsenJS", function () {
             expect(res.A1).toBe(140);
             expect(res.A2).toBe(294.778189969);
             expect(res.S).toBe(15000000);
+        });
+
+        it("should handle more cases", function () {
+            holsen.setEllipsoid("international");
+            var res = holsen.lgeo2(1.0, 50.0, 185.093972133, -62.950889964);
+
+            expect(res.A1).toBe(188.121639704);
+            expect(res.A2).toBe(168.489293661);
+            expect(res.S).toBe(18541568.952);
+        });
+
+        it("should handle negative latitudes", function () {
+            holsen.setEllipsoid("international");
+            var res = holsen.lgeo2(10.0, -50.0, 105.093972133, -62.950889964);
+
+            expect(res.A1).toBeComparableTo(143.087679922, "A1");
+            expect(res.A2).toBeComparableTo(238.031145465, "A2");
+            expect(res.S).toBe(5464643.693, "S");
+        });
+
+        it("should trigger an error when diff in longitude is small", function () {
+            holsen.setEllipsoid("international");
+
+            expect(function () {
+                holsen.lgeo2(10.0, 50.0, 10.000001, -62.950889964);
+            }).toThrow(new Error("Unable to compute. Use a meridian arc program!"));
         });
 
         it("should throw an error when ellipsoid not set", function () {
