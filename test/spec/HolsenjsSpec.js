@@ -91,8 +91,8 @@ describe("HolsenJS", function () {
 
         it("should not complain when setting a valid coordsystem object", function () {
             holsen.setCoordsystem({
-                "factor": function () {},
-                "y_add": function () {}
+                "factor": 0.9996,
+                "y_add": 500000
             });
         });
 
@@ -105,22 +105,22 @@ describe("HolsenJS", function () {
         it("should complain when setting an invalid coordsystem object", function () {
             expect(function () {
                 holsen.setCoordsystem({
-                    "factor": function () {}
+                    "factor": 1
                 });
-            }).toThrow(new Error("The entered coordsystem is either missing or have non-functions as factor or y_add."));
+            }).toThrow(new Error("The entered coordsystem is either missing or have non-numbers as a or b."));
 
             expect(function () {
                 holsen.setCoordsystem({
-                    "y_add": function () {}
+                    "y_add": 10
                 });
-            }).toThrow(new Error("The entered coordsystem is either missing or have non-functions as factor or y_add."));
+            }).toThrow(new Error("The entered coordsystem is either missing or have non-numbers as a or b."));
 
             expect(function () {
                 holsen.setCoordsystem({
                     "factor": "bambus",
-                    "y_add": function () {}
+                    "y_add": 50
                 });
-            }).toThrow(new Error("The entered coordsystem is either missing or have non-functions as factor or y_add."));
+            }).toThrow(new Error("The entered coordsystem is either missing or have non-numbers as a or b."));
         });
     });
 
