@@ -69,10 +69,10 @@ var Holsen = function () {
                 throw new Error("Non-existing coordsystem: " + coordsystem);
             }
         } else if (coordsystem === Object(coordsystem)) {
-            if (coordsystem.factor && typeof coordsystem.factor === 'function' && coordsystem.y_add && typeof coordsystem.y_add === 'function') {
+            if (coordsystem.factor && !isNaN(coordsystem.factor) && coordsystem.y_add && !isNaN(coordsystem.y_add)) {
                 settings.coordsystem = coordsystem;
             } else {
-                throw new Error("The entered coordsystem is either missing or have non-functions as factor or y_add.");
+                throw new Error("The entered coordsystem is either missing or have non-numbers as a or b.");
             }
         } else {
             throw new Error("Malformed coordsystem.");
