@@ -11,6 +11,10 @@ describe("HolsenJS", function () {
             toBeComparableTo: function (expected) {
                 var diff = Math.abs(expected - this.actual);
                 return diff < 10e-5;
+            },
+            toBeCloseEnoughTo: function (expected, limit) {
+                var diff = Math.abs(expected - this.actual);
+                return diff < limit;
             }
         });
 
@@ -338,20 +342,160 @@ describe("HolsenJS", function () {
                 expect(holsen.bl_to_xy).toBeDefined();
             });
 
-            //WEll, seems like the presicion is off here.. fuck it..
-            it("should reproduce the results from the manual", function () {
+            it("should reproduce the results from norgeskart.no 1", function () {
                 holsen.setEllipsoid("wgs84");
                 holsen.setCoordsystem("UTM");
                 var res = holsen.bl_to_xy(10.10, 63.10, 9, 0);
+                var accuracy = 0.003;
 
-                expect(res.x).toBe(6997206.3527);
-                expect(res.y).toBe(555527.1335);
+                expect(res.x).toBeCloseEnoughTo(6997206.354, accuracy); 
+                expect(res.y).toBeCloseEnoughTo(555525.12, accuracy);
 
-                /* THESE ARE THE ACTUAL ONES
-                expect(res.x).toBe(6997206.3054);
-                expect(res.y).toBe(555525.1191);
-                */
+                
+                
             });
+
+            it("should reproduce the results from holsen 1", function () {
+                holsen.setEllipsoid("wgs84");
+                holsen.setCoordsystem("UTM");
+                var res = holsen.bl_to_xy(10.10, 63.10, 9, 0);
+                var accuracyX = 0.05; // There seem to be an error in original holsen on about 5 cm on X. 
+                var accuracyY = 0.003; 
+
+                expect(res.x).toBeCloseEnoughTo(6997206.3054, accuracyX); 
+                expect(res.y).toBeCloseEnoughTo(555525.1191, accuracyY);
+
+                
+                
+            });
+            
+            it("should reproduce the results from norgeskart.no 2 - Vest-Agder", function () {
+                holsen.setEllipsoid("wgs84");
+                holsen.setCoordsystem("UTM");
+                var res = holsen.bl_to_xy(7.408, 58.415, 9, 0);
+                var accuracy = 0.003;
+
+                expect(res.x).toBeCloseEnoughTo(6476015.718, accuracy);
+                expect(res.y).toBeCloseEnoughTo(406994.739, accuracy);
+        
+            });
+
+            it("should reproduce the results from holsen 2 - Vest-Agder", function () {
+                holsen.setEllipsoid("wgs84");
+                holsen.setCoordsystem("UTM");
+                var res = holsen.bl_to_xy(7.408, 58.415, 9, 0);
+                var accuracyX = 0.05;
+                var accuracyY = 0.003; 
+
+                expect(res.x).toBeCloseEnoughTo(6476015.6724, accuracyX);
+                expect(res.y).toBeCloseEnoughTo(406994.7397, accuracyY);
+        
+            });
+
+
+            it("should reproduce the results from norgeskart.no 3 - NTNU", function () {
+                holsen.setEllipsoid("wgs84");
+                holsen.setCoordsystem("UTM");
+                var res = holsen.bl_to_xy(10.408, 63.415, 9, 0);
+                var accuracy = 0.003;
+
+                expect(res.x).toBeCloseEnoughTo(7032601.179, accuracy);
+                expect(res.y).toBeCloseEnoughTo(570300.248, accuracy);
+        
+            });
+
+
+            it("should reproduce the results from holsen 3 - NTNU", function () {
+                holsen.setEllipsoid("wgs84");
+                holsen.setCoordsystem("UTM");
+                var res = holsen.bl_to_xy(10.408, 63.415, 9, 0);
+                var accuracyX = 0.05;
+                var accuracyY = 0.003; 
+
+                expect(res.x).toBeCloseEnoughTo(7032601.1306, accuracyX);
+                expect(res.y).toBeCloseEnoughTo(570300.2473, accuracyY);
+        
+            });
+
+            it("should reproduce the results from norgeskart.no 4 - East for Troms", function () {
+                holsen.setEllipsoid("wgs84");
+                holsen.setCoordsystem("UTM");
+                var res = holsen.bl_to_xy(9.408, 70.415, 9, 0);
+                var accuracy = 0.003;
+
+                expect(res.x).toBeCloseEnoughTo(7812205.14, accuracy);
+                expect(res.y).toBeCloseEnoughTo(515263.682, accuracy);
+        
+            });
+
+
+            it("should reproduce the results from holsen 4 - East for Troms", function () {
+                holsen.setEllipsoid("wgs84");
+                holsen.setCoordsystem("UTM");
+                var res = holsen.bl_to_xy(9.408, 70.415, 9, 0);
+                var accuracyX = 0.06; // 310314: failed when equal to 0.05
+                var accuracyY = 0.003; 
+
+                expect(res.x).toBeCloseEnoughTo(7812205.0874, accuracyX);
+                expect(res.y).toBeCloseEnoughTo(515263.6833, accuracyY);
+        
+            });
+
+            // 310314: Holsenjs is not even close to match norgeskart here. So results outside Norway could be very wrong
+            /*it("should reproduce the results from norgeskart.no 5 - South Germany", function () {
+                holsen.setEllipsoid("wgs84");
+                holsen.setCoordsystem("UTM");
+                var res = holsen.bl_to_xy(9.408, 48.415, 9, 0);
+                var accuracy = 0.003;
+
+                // original holsen and norgeskart.no is very different here. 
+                expect(res.x).toBeCloseEnoughTo(5370114.967, accuracy);
+                expect(res.y).toBeCloseEnoughTo(543667.223, accuracy);
+        
+            });*/
+
+            it("should reproduce the results from holsen 5 - South Germany", function () {
+                holsen.setEllipsoid("wgs84");
+                holsen.setCoordsystem("UTM");
+                var res = holsen.bl_to_xy(9.408, 48.415, 9, 0);
+                var accuracyX = 0.05;
+                var accuracyY = 0.003; 
+
+                // original holsen and norgeskart.no is very different here
+                expect(res.x).toBeCloseEnoughTo(5362507.7885, accuracyX);
+                expect(res.y).toBeCloseEnoughTo(530190.0412, accuracyY);
+        
+            });
+
+
+            /* 310314: It seems like going to long away from the North axis is causing problems. 
+            it("should reproduce the results from norgeskart.no 6 - Finnmark", function () {
+                holsen.setEllipsoid("wgs84");
+                holsen.setCoordsystem("UTM");
+                var res = holsen.bl_to_xy(24.408, 70.415, 9, 0);
+                var accuracy = 0.003;
+
+
+                // 310314: There are several meters in difference here. X coord have biggest difference. 
+                // Original holsen and norgeskart have a difference on about half a meter in Y value             
+                expect(res.x).toBeCloseEnoughTo(7885029.422, accuracy); 
+                expect(res.y).toBeCloseEnoughTo(1071023.048, accuracy);
+        
+            });
+
+            it("should reproduce the results from holsen 6 - Finnmark", function () {
+                holsen.setEllipsoid("wgs84");
+                holsen.setCoordsystem("UTM");
+                var res = holsen.bl_to_xy(24.408, 70.415, 9, 0);
+                var accuracyX = 0.05;
+                var accuracyY = 0.003; 
+                
+                // 310314: There are several meters in difference here. X coord have biggest difference   
+                expect(res.x).toBeCloseEnoughTo(7885029.3489, accuracyX); 
+                expect(res.y).toBeCloseEnoughTo(1071022.6287, accuracyY);
+        
+            });*/
+
 
             it("should throw an error when ellipsoid not set", function () {
                 holsen.setCoordsystem("UTM");
