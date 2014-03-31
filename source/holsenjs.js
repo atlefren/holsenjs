@@ -512,11 +512,12 @@ var Holsen = function () {
         var a1 = n1 * Math.cos(br);
         var a2 = -(n1 * t * Math.pow(Math.cos(br), 2)) / 2.0;
         var a3 = -(n1 * Math.pow(Math.cos(br), 3)) * (1 - Math.pow(t, 2) + et) / 6;
-        var a4 = n1 * t * Math.pow(Math.cos(br), 4) * (5 - Math.pow(t, 2) + 9 * Math.pow(et, 2)) / 24;
+        var a4 = n1 * t * Math.pow(Math.cos(br), 4) * (5 - Math.pow(t, 2) + 9 * et + 4 * Math.pow(et, 2)) / 24;        
         var a5 = n1 * Math.pow(Math.cos(br), 5) * (5 - 18 * Math.pow(t, 2) + Math.pow(t, 4) + 14 * et - 58 * et * Math.pow(t, 2)) / 120;
-        var a6 = n1 * t * Math.pow(Math.cos(br), 6) * (61 - 58 * Math.pow(t, 4) + 270 * et - 330 * et * Math.pow(t, 2)) / 270;
+        var a6 = n1 * t * Math.pow(Math.cos(br), 6) * (61 - 58 * Math.pow(t, 2) + Math.pow(t, 4) + 270 * et - 330 * et * Math.pow(t, 2)) / 270;
+        
         var x = -a2 * Math.pow(l, 2) + a4 * Math.pow(l, 4) + a6 * Math.pow(l, 6);
-        var y = a1 * l - a3 * Math.pow(l, 3) * a5 * Math.pow(l, 5);
+        var y = a1 * l - a3 * Math.pow(l, 3) + a5 * Math.pow(l, 5);
 
         x = x + meridbue_internal(br, b0, null, ellipsoidParams(), true);
 
