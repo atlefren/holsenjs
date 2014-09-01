@@ -1,28 +1,28 @@
 var Holsen = function () {
-    "use strict";
+    'use strict';
 
     var settings = {
-        "ellipsoid": undefined,
-        "coordsystem": undefined
+        ellipsoid: undefined,
+        coordsystem: undefined
     };
 
     var ellipsoids = {
-        "bessel": {
-            "a": 6377492.018,
-            "b": 6356173.509
+        bessel: {
+            a: 6377492.018,
+            b: 6356173.509
         },
-        "international": {
-            "a": 6378388.000,
-            "b": 6356911.946
+        international: {
+            a: 6378388.000,
+            b: 6356911.946
         },
-        "wgs84": {
-            "a": 6378137.000,
-            "b": 6356752.314
+        wgs84: {
+            a: 6378137.000,
+            b: 6356752.314
         }
     };
 
     var isString = function (obj) {
-        return Object.prototype.toString.call(obj) === "[object String]";
+        return Object.prototype.toString.call(obj) === '[object String]';
     };
 
     var setEllipsoid = function (ellipsoid) {
@@ -31,33 +31,33 @@ var Holsen = function () {
                 settings.ellipsoid = ellipsoids[ellipsoid];
 
             } else {
-                throw new Error("Non-existing ellipsoid: " + ellipsoid);
+                throw new Error('Non-existing ellipsoid: ' + ellipsoid);
             }
         } else if (ellipsoid === Object(ellipsoid)) {
             if (ellipsoid.a && !isNaN(ellipsoid.a) && ellipsoid.b && !isNaN(ellipsoid.b)) {
                 settings.ellipsoid = ellipsoid;
             } else {
-                throw new Error("The entered ellipsoid is either missing or have non-numbers as a or b.");
+                throw new Error('The entered ellipsoid is either missing or have non-numbers as a or b.');
             }
         } else {
-            throw new Error("Malformed ellipsoid.");
+            throw new Error('Malformed ellipsoid.');
         }
     };
 
     var checkEllipsoid = function () {
         if (settings.ellipsoid === undefined) {
-            throw new Error("Ellipsoid not set (call holsen.setEllipsoid()!).");
+            throw new Error('Ellipsoid not set (call holsen.setEllipsoid()!).');
         }
     };
 
     var coordsystems = {
-        "UTM": {
-            "factor": 0.9996,
-            "y_add": 500000
+        UTM: {
+            factor: 0.9996,
+            y_add: 500000
         },
-        "NGO": {
-            "factor": 1,
-            "y_add": 0
+        NGO: {
+            factor: 1,
+            y_add: 0
         }
     };
 
@@ -66,22 +66,22 @@ var Holsen = function () {
             if (coordsystems[coordsystem] !== undefined) {
                 settings.coordsystem = coordsystems[coordsystem];
             } else {
-                throw new Error("Non-existing coordsystem: " + coordsystem);
+                throw new Error('Non-existing coordsystem: ' + coordsystem);
             }
         } else if (coordsystem === Object(coordsystem)) {
             if (coordsystem.factor && !isNaN(coordsystem.factor) && coordsystem.y_add && !isNaN(coordsystem.y_add)) {
                 settings.coordsystem = coordsystem;
             } else {
-                throw new Error("The entered coordsystem is either missing or have non-numbers as a or b.");
+                throw new Error('The entered coordsystem is either missing or have non-numbers as a or b.');
             }
         } else {
-            throw new Error("Malformed coordsystem.");
+            throw new Error('Malformed coordsystem.');
         }
     };
 
     var checkCoordsystem = function () {
         if (settings.coordsystem === undefined) {
-            throw new Error("Coordsystem not set (call holsen.setCoordsystem()!).");
+            throw new Error('Coordsystem not set (call holsen.setCoordsystem()!).');
         }
     };
 
@@ -110,11 +110,11 @@ var Holsen = function () {
         var k2 = (n - n * n * n / 8) * 3;
         var k3 = (n * n - Math.pow(n, 4) / 4) * 15 / 8;
         return {
-            "n": n,
-            "k": k,
-            "k1": k1,
-            "k2": k2,
-            "k3": k3
+            n: n,
+            k: k,
+            k1: k1,
+            k2: k2,
+            k3: k3
         };
     };
 
@@ -139,13 +139,13 @@ var Holsen = function () {
         }
 
         var params = {
-            "bm": bm,
-            "db": db,
-            "arc": arc,
-            "g1": g1,
-            "lon2": lon2,
-            "ef": ellipsoid_params,
-            "find_arc": find_arc
+            bm: bm,
+            db: db,
+            arc: arc,
+            g1: g1,
+            lon2: lon2,
+            ef: ellipsoid_params,
+            find_arc: find_arc
         };
 
         if (find_arc) {
@@ -163,13 +163,13 @@ var Holsen = function () {
         x = x / settings.coordsystem.factor;
         y = (y - settings.coordsystem.y_add) / settings.coordsystem.factor;
 
-        return {"x": x, "y": y};
+        return {x: x, y: y};
     };
 
     var convertXyCoordsBack = function (x, y) {
         x = x * settings.coordsystem.factor;
         y = y * settings.coordsystem.factor + settings.coordsystem.y_add;
-        return {"x": x, "y": y};
+        return {x: x, y: y};
     };
 
     //PUBLIC
@@ -199,10 +199,10 @@ var Holsen = function () {
         var mr = Math.sqrt(m * n);
         var ra = n * m / (n * Math.pow(Math.cos(azimuth), 2) + m * Math.pow(Math.sin(azimuth), 2));
         return {
-            "M": round(m, 3),
-            "N": round(n, 3),
-            "MR": round(mr, 3),
-            "AR": round(ra, 3)
+            M: round(m, 3),
+            N: round(n, 3),
+            MR: round(mr, 3),
+            AR: round(ra, 3)
         };
     };
 
@@ -343,14 +343,14 @@ var Holsen = function () {
         }
 
         return {
-            "B2": round(toDeg(b2), 9),
-            "L2": round(toDeg(l2), 9),
-            "A2": round(toDeg(a2), 9),
-            "rb0": toDeg(rb0),
-            "si1": toDeg(si1),
-            "si2": toDeg(si2),
-            "la1": toDeg(la1),
-            "la2": toDeg(la2)
+            B2: round(toDeg(b2), 9),
+            L2: round(toDeg(l2), 9),
+            A2: round(toDeg(a2), 9),
+            rb0: toDeg(rb0),
+            si1: toDeg(si1),
+            si2: toDeg(si2),
+            la1: toDeg(la1),
+            la2: toDeg(la2)
         };
     };
 
@@ -374,7 +374,7 @@ var Holsen = function () {
         var dl = lon2 - lon1;
 
         if (Math.abs(dl) < 2 * Math.pow(10, -8)) {
-            throw new Error("Unable to compute. Use a meridian arc program!");
+            throw new Error('Unable to compute. Use a meridian arc program!');
         } else {
             if (dl < -Math.PI) {
                 dl = dl + 2 * Math.PI;
@@ -439,13 +439,13 @@ var Holsen = function () {
             }
 
             var result = {
-                "RB0": toDeg(rb0),
-                "LA1": toDeg(la1),
-                "LA2": toDeg(la2),
-                "SI1": toDeg(si1),
-                "SI2": toDeg(si2),
-                "a1": toDeg(a1),
-                "a2": toDeg(a2)
+                RB0: toDeg(rb0),
+                LA1: toDeg(la1),
+                LA2: toDeg(la2),
+                SI1: toDeg(si1),
+                SI2: toDeg(si2),
+                a1: toDeg(a1),
+                a2: toDeg(a2)
             };
 
             if (dl > 0) {
@@ -515,7 +515,7 @@ var Holsen = function () {
         var a4 = n1 * t * Math.pow(Math.cos(br), 4) * (5 - Math.pow(t, 2) + 9 * et + 4 * Math.pow(et, 2)) / 24;        
         var a5 = n1 * Math.pow(Math.cos(br), 5) * (5 - 18 * Math.pow(t, 2) + Math.pow(t, 4) + 14 * et - 58 * et * Math.pow(t, 2)) / 120;
         var a6 = n1 * t * Math.pow(Math.cos(br), 6) * (61 - 58 * Math.pow(t, 2) + Math.pow(t, 4) + 270 * et - 330 * et * Math.pow(t, 2)) / 270;
-        
+         
         var x = -a2 * Math.pow(l, 2) + a4 * Math.pow(l, 4) + a6 * Math.pow(l, 6);
         var y = a1 * l - a3 * Math.pow(l, 3) + a5 * Math.pow(l, 5);
 
@@ -526,8 +526,8 @@ var Holsen = function () {
         y = conv.y;
 
         return {
-            "x": round(x, 4),
-            "y": round(y, 4)
+            x: round(x, 4),
+            y: round(y, 4)
         };
     };
 
@@ -563,24 +563,24 @@ var Holsen = function () {
         l = toDeg(l + l1);
         br = toDeg(br);
         return {
-            "lon": round(br, 9),
-            "lat": round(l, 9)
+            lon: round(br, 9),
+            lat: round(l, 9)
         };
     };
 
     return {
-        "lgeo1": lgeo1,
-        "lgeo2": lgeo2,
-        "krrad": krrad,
-        "meridbue": meridbue,
-        "meridbue_inv": meridbue_inv,
-        "konverg": konverg,
-        "konverg_xy": konverg_xy,
-        "bl_to_xy": bl_to_xy,
-        "xy_to_bl": xy_to_bl,
-        "getEllipsoids": function () {return ellipsoids; },
-        "setEllipsoid": setEllipsoid,
-        "getCoordsystems": function () {return coordsystems; },
-        "setCoordsystem": setCoordsystem
+        lgeo1: lgeo1,
+        lgeo2: lgeo2,
+        krrad: krrad,
+        meridbue: meridbue,
+        meridbue_inv: meridbue_inv,
+        konverg: konverg,
+        konverg_xy: konverg_xy,
+        bl_to_xy: bl_to_xy,
+        xy_to_bl: xy_to_bl,
+        getEllipsoids: function () {return ellipsoids; },
+        setEllipsoid: setEllipsoid,
+        getCoordsystems: function () {return coordsystems; },
+        setCoordsystem: setCoordsystem
     };
 };
